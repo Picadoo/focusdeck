@@ -1,0 +1,31 @@
+# 构建上下文要尽量小：仓库根目录躺着上百个 tmp-*.png 和 android/ 产物，
+# 不排掉的话每次 docker build 都要把几百 MB 传给守护进程。
+.git
+.gitignore
+
+node_modules
+server/node_modules
+dist
+server/dist
+
+android
+src-tauri
+.tmp-chrome-profile
+.tmp-chrome-profile-fs
+
+testkit/shots
+tmp-*.png
+tmp-*.json
+tmp_*.py
+
+*.md
+!README.md
+
+.env
+.env.*
+!.env.example
+
+data
+Dockerfile
+.dockerignore
+docker-compose.yml

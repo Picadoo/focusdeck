@@ -1,0 +1,18 @@
+services:
+  focusdeck-api:
+    image: focusdeck-api:0.1.0
+    container_name: focusdeck-api
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8787
+      DB_PATH: /data/focusdeck.db
+      FOCUSDECK_USER: ${FOCUSDECK_USER}
+      FOCUSDECK_PASSWORD_HASH: ${FOCUSDECK_PASSWORD_HASH}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - /opt/focusdeck/data:/data
+    # 宿主 8787 已被 mindcanvas-sync 占用，对外只经 nginx 反代，故只绑回环。
+    ports:
+      - "127.0.0.1:8788:8787"
