@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  服务器地址由用户在应用内自填（局域网 IP、内网域名都可能），无法预先枚举成白名单，
+  因此 base-config 必须放行明文 HTTP。注意：只要本文件存在，清单里的
+  android:usesCleartextTraffic 就会被系统忽略（Android 7+），明文策略以这里为准。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
