@@ -28,7 +28,10 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // 默认不出 sourcemap：index.js 是 450KB，它的 map 有 1.8MB——塞进 APK 就占掉整包
+    // 三分之一，release 包还会把源码结构原样送出去。要远程调试 WebView 时临时加
+    // `--sourcemap`，CLI 参数会覆盖这里。
+    sourcemap: false,
   },
   test: {
     environment: 'node',
