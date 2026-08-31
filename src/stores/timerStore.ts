@@ -1,10 +1,15 @@
+import { useNowSeconds } from '../lib/clock'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { TimerState, TimerPhase } from '../types'
-import { DEFAULT_TIMER_PROFILES, DEFAULT_TIMER_STATE } from '../lib/data'
+import type { TimerPhase, TimerState, TimerTransition } from '../types'
+import { defaultTimerProfiles, DEFAULT_TIMER_STATE } from '../lib/data'
+import { useAppStore } from './appStore'
 
 interface TimerStore extends TimerState {
   setProfile: (profileId: string) => void
+  setTask: (taskId: string | null) => void
+  refreshIdleDuration: () => void
+  clearTransition: () => void
   start: (taskId?: string | null) => void
   pause: () => void
   resume: () => void
@@ -13,26 +18,45 @@ interface TimerStore extends TimerState {
   tick: () => void
 }
 
+type PersistedTimerState = TimerState
+
 function currentSeconds() {
   return Math.floor(Date.now() / 1000)
 }
 
+function getProfile(profileId: string) {
+  const stored = useAppStore.getState().timerProfiles.find((profile) => profile.id === profileId)
+  if (stored) return stored
+  const seeds = defaultTimerProfiles()
+  return seeds.find((profile) => profile.id === profileId) ?? seeds[0]
+}
+
 function getPhaseDuration(profileId: string, phase: TimerPhase) {
-  const profile = DEFAULT_TIMER_PROFILES.find((p) => p.id === profileId) ?? DEFAULT_TIMER_PROFILES[0]
-  if (phase === 'focus_running' || phase === 'focus_paused') return profile.focusSeconds
+  const profile = getProfile(profileId)
   if (phase === 'short_break_running') return profile.shortBreakSeconds
   if (phase === 'long_break_running') return profile.longBreakSeconds
   return profile.focusSeconds
 }
 
-function nextPhase(profileId: string, current: TimerPhase, sessionCount: number): TimerPhase {
-  const profile = DEFAULT_TIMER_PROFILES.find((p) => p.id === profileId) ?? DEFAULT_TIMER_PROFILES[0]
-  if (current === 'focus_running' || current === 'focus_paused') {
-    const nextSession = sessionCount + 1
-    if (nextSession % profile.sessionsBeforeLongBreak === 0) return 'long_break_running'
-    return 'short_break_running'
-  }
-  return 'focus_running'
+function getBreakPhase(profileId: string, sessionCount: number): TimerPhase {
+  const profile = getProfile(profileId)
+  return sessionCount % profile.sessionsBeforeLongBreak === 0 ? 'long_break_running' : 'short_break_running'
+}
+
+function creditCurrentFocusSegment(state: TimerStore, now: number) {
+  if (!state.taskId || !state.phase.startsWith('focus')) return 0
+
+  const profile = getProfile(state.profileId)
+  const elapsed = Math.max(0, now - (state.startedAt ?? now))
+  const remainingCredit = Math.max(0, profile.focusSeconds - state.focusElapsedSeconds)
+  const credit = Math.min(elapsed, remainingCredit)
+  if (credit > 0) useAppStore.getState().addFocusSeconds(state.taskId, credit)
+  return credit
+}
+
+function remainingFromEndsAt(endsAt: number | null, now = currentSeconds()) {
+  if (endsAt == null) return 0
+  return Math.max(0, endsAt - now)
 }
 
 export const useTimerStore = create(
@@ -41,18 +65,35 @@ export const useTimerStore = create(
       ...DEFAULT_TIMER_STATE,
 
       setProfile: (profileId) => {
-        const profile = DEFAULT_TIMER_PROFILES.find((p) => p.id === profileId) ?? DEFAULT_TIMER_PROFILES[0]
+        const profile = getProfile(profileId)
         set({
           profileId,
           phase: 'idle',
           remainingSeconds: profile.focusSeconds,
           sessionCount: 0,
+          taskId: null,
           startedAt: null,
           endsAt: null,
+          focusElapsedSeconds: 0,
+          lastTransition: null,
+          lastTransitionAt: null,
         })
       },
 
-      start: (taskId = null) => {
+      setTask: (taskId) => {
+        if (get().phase !== 'idle') return
+        set({ taskId })
+      },
+
+      refreshIdleDuration: () => {
+        const state = get()
+        if (state.phase !== 'idle') return
+        set({ remainingSeconds: getProfile(state.profileId).focusSeconds })
+      },
+
+      clearTransition: () => set({ lastTransition: null, lastTransitionAt: null }),
+
+      start: (taskId) => {
         const state = get()
         const duration = getPhaseDuration(state.profileId, 'focus_running')
         const now = currentSeconds()
@@ -61,18 +102,27 @@ export const useTimerStore = create(
           phase: 'focus_running',
           remainingSeconds: duration,
           taskId: nextTaskId,
-          sessionCount: state.phase === 'idle' ? state.sessionCount : state.sessionCount,
           startedAt: now,
           endsAt: now + duration,
+          focusElapsedSeconds: 0,
+          lastTransition: null,
+          lastTransitionAt: null,
         })
       },
 
       pause: () => {
         const state = get()
-        if (state.phase !== 'focus_running' && state.phase !== 'short_break_running' && state.phase !== 'long_break_running') return
+        if (!state.phase.endsWith('_running')) return
+
         const now = currentSeconds()
-        const remaining = Math.max(0, (state.endsAt ?? now) - now)
-        set({ phase: `${state.phase.split('_running')[0]}_paused` as TimerPhase, remainingSeconds: remaining, endsAt: null })
+        const credited = creditCurrentFocusSegment(state, now)
+        const remaining = remainingFromEndsAt(state.endsAt, now)
+        set({
+          phase: `${state.phase.split('_running')[0]}_paused` as TimerPhase,
+          remainingSeconds: remaining,
+          endsAt: null,
+          focusElapsedSeconds: state.focusElapsedSeconds + credited,
+        })
       },
 
       resume: () => {
@@ -90,59 +140,140 @@ export const useTimerStore = create(
       skip: () => {
         const state = get()
         if (state.phase === 'idle') return
-        const profile = DEFAULT_TIMER_PROFILES.find((p) => p.id === state.profileId) ?? DEFAULT_TIMER_PROFILES[0]
-        const next = nextPhase(state.profileId, state.phase, state.sessionCount)
-        const newSessionCount = state.phase.startsWith('focus') ? state.sessionCount + 1 : state.sessionCount
-        const duration = next === 'focus_running' ? profile.focusSeconds : next === 'short_break_running' ? profile.shortBreakSeconds : profile.longBreakSeconds
+
         const now = currentSeconds()
+        const profile = getProfile(state.profileId)
+        if (state.phase.startsWith('focus')) {
+          const credited = creditCurrentFocusSegment(state, now)
+          set({
+            phase: 'short_break_running',
+            remainingSeconds: profile.shortBreakSeconds,
+            taskId: null,
+            startedAt: now,
+            endsAt: now + profile.shortBreakSeconds,
+            focusElapsedSeconds: state.focusElapsedSeconds + credited,
+            lastTransition: 'focus_skipped',
+            lastTransitionAt: now,
+          })
+          return
+        }
+
         set({
-          phase: next,
-          remainingSeconds: duration,
-          sessionCount: newSessionCount,
-          startedAt: now,
-          endsAt: now + duration,
+          phase: 'idle',
+          remainingSeconds: profile.focusSeconds,
+          taskId: null,
+          startedAt: null,
+          endsAt: null,
+          focusElapsedSeconds: 0,
+          lastTransition: 'break_skipped',
+          lastTransitionAt: now,
         })
       },
 
       reset: () => {
-        const profile = DEFAULT_TIMER_PROFILES.find((p) => p.id === get().profileId) ?? DEFAULT_TIMER_PROFILES[0]
+        const state = get()
+        const profile = getProfile(state.profileId)
         set({
           ...DEFAULT_TIMER_STATE,
-          profileId: get().profileId,
+          profileId: state.profileId,
           remainingSeconds: profile.focusSeconds,
-          taskId: get().taskId,
+          taskId: state.taskId,
         })
       },
 
       tick: () => {
         const state = get()
-        if (state.phase.endsWith('_paused') || state.phase === 'idle') return
-        const now = currentSeconds()
-        const ends = state.endsAt ?? now
-        const remaining = Math.max(0, ends - now)
+        if (state.phase === 'idle' || state.phase.endsWith('_paused')) return
 
-        if (remaining === 0) {
-          // Auto advance
-          const profile = DEFAULT_TIMER_PROFILES.find((p) => p.id === state.profileId) ?? DEFAULT_TIMER_PROFILES[0]
-          const isFocus = state.phase === 'focus_running'
-          const next = isFocus ? nextPhase(state.profileId, state.phase, state.sessionCount) : 'focus_running'
-          const newSessionCount = isFocus ? state.sessionCount + 1 : state.sessionCount
-          const duration = next === 'focus_running' ? profile.focusSeconds : next === 'short_break_running' ? profile.shortBreakSeconds : profile.longBreakSeconds
+        const now = currentSeconds()
+        const remaining = remainingFromEndsAt(state.endsAt, now)
+        if (remaining > 0) return
+
+        const profile = getProfile(state.profileId)
+        if (state.phase === 'focus_running') {
+          const credited = creditCurrentFocusSegment(state, now)
+          const nextSessionCount = state.sessionCount + 1
+          const nextPhase = getBreakPhase(state.profileId, nextSessionCount)
+          const breakDuration = getPhaseDuration(state.profileId, nextPhase)
+          const transition: TimerTransition = 'focus_completed'
+
           set({
-            phase: next,
-            remainingSeconds: duration,
-            sessionCount: newSessionCount,
+            phase: nextPhase,
+            remainingSeconds: breakDuration,
+            sessionCount: nextSessionCount,
+            taskId: null,
             startedAt: now,
-            endsAt: now + duration,
+            endsAt: now + breakDuration,
+            focusElapsedSeconds: state.focusElapsedSeconds + credited,
+            lastTransition: transition,
+            lastTransitionAt: now,
           })
-        } else {
-          set({ remainingSeconds: remaining })
+          return
         }
+
+        const transition: TimerTransition = state.phase === 'short_break_running'
+          ? 'short_break_completed'
+          : 'long_break_completed'
+
+        set({
+          phase: 'idle',
+          remainingSeconds: profile.focusSeconds,
+          taskId: null,
+          startedAt: null,
+          endsAt: null,
+          focusElapsedSeconds: 0,
+          lastTransition: transition,
+          lastTransitionAt: now,
+        })
       },
     }),
     {
       name: 'focusdeck-timer-storage',
-      version: 1,
+      version: 4,
+      partialize: (state) => ({
+        profileId: state.profileId,
+        phase: state.phase,
+        remainingSeconds: state.phase.endsWith('_running')
+          ? remainingFromEndsAt(state.endsAt)
+          : state.remainingSeconds,
+        sessionCount: state.sessionCount,
+        taskId: state.taskId,
+        startedAt: state.startedAt,
+        endsAt: state.endsAt,
+        focusElapsedSeconds: state.focusElapsedSeconds,
+        lastTransition: null,
+        lastTransitionAt: null,
+      }) as TimerStore,
+      migrate: (persistedState) => {
+        const state = persistedState as PersistedTimerState
+        if (!state) return persistedState as TimerStore
+        const next = {
+          ...state,
+          lastTransition: null,
+          lastTransitionAt: null,
+        }
+        if (state.phase.endsWith('_running') && state.endsAt != null) {
+          return {
+            ...next,
+            remainingSeconds: remainingFromEndsAt(state.endsAt),
+          } as TimerStore
+        }
+        return next as TimerStore
+      },
+      onRehydrateStorage: () => (state) => {
+        if (!state?.phase.endsWith('_running')) return
+        queueMicrotask(() => useTimerStore.getState().tick())
+      },
     }
   )
 )
+
+export function useTimerRemaining() {
+  const phase = useTimerStore((s) => s.phase)
+  const remainingSeconds = useTimerStore((s) => s.remainingSeconds)
+  const endsAt = useTimerStore((s) => s.endsAt)
+  const running = phase.endsWith('_running')
+  const now = useNowSeconds(running)
+  if (running && endsAt != null) return Math.max(0, endsAt - now)
+  return remainingSeconds
+}

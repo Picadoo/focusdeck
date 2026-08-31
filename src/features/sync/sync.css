@@ -1,0 +1,271 @@
+.sync-dot {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sync-dot.syncing {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+}
+
+.sync-dot.offline,
+.sync-dot.local {
+  color: var(--text-dim);
+}
+
+.sync-dot.error {
+  color: #b71d18;
+  background: var(--danger-dim);
+}
+
+.sync-login,
+.sync-account {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.sync-login-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sync-login input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.sync-server-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sync-server-row input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.sync-test-btn {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.sync-login-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.sync-login-ok {
+  margin: 0;
+  color: var(--accent-dark);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sync-login-hint,
+.sync-account p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+/* ---------- 通知自检 ----------
+   通知不响时用户无从判断断在哪一环：权限、精确闹钟、厂商电池白名单、自启动，
+   任何一环断掉现象都一样（就是不响）。这块把四环状态摊开，每条配一个直达的修复入口。 */
+
+.notify-check {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.notify-check-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notify-check-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.notify-check-spin {
+  animation: notify-check-rotate 0.8s linear infinite;
+}
+
+@keyframes notify-check-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.notify-check-note,
+.notify-check-toast,
+.notify-check-summary {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.notify-check-note {
+  color: var(--text-dim);
+}
+
+.notify-check-toast {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+.notify-check-summary {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.notify-check-list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+}
+
+.notify-check-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+}
+
+.notify-check-icon {
+  display: inline-flex;
+  margin-top: 1px;
+  color: var(--text-dim);
+}
+
+.notify-check-row.level-ok .notify-check-icon {
+  color: var(--accent);
+}
+
+.notify-check-row.level-warn .notify-check-icon {
+  color: var(--focus);
+}
+
+.notify-check-row.level-bad .notify-check-icon {
+  color: var(--danger);
+}
+
+.notify-check-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notify-check-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.notify-check-label em {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.notify-check-row.level-bad .notify-check-label em {
+  color: var(--danger);
+}
+
+.notify-check-hint {
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.notify-check-action {
+  flex-shrink: 0;
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.notify-check-footer {
+  display: flex;
+  gap: 8px;
+}
+
+.notify-check-footer button {
+  flex: 1 1 0;
+}
+
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .layout-header {
+    padding-top: calc(8px + env(safe-area-inset-top));
+  }
+
+  .bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1200;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.92);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+  }
+
+  .bottom-nav button {
+    display: flex;
+    min-height: 48px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .bottom-nav button.active {
+    color: var(--accent-dark);
+  }
+}

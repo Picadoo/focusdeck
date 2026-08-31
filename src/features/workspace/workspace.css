@@ -1,0 +1,150 @@
+.workspace {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  gap: 16px;
+}
+
+.workspace.view-tasks {
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+/* 概览：主栏 + 右侧窄栏（Minimals course 的双栏骨架）。
+   旧版是单列 flex，1440 宽下三张卡并排一行就到底了，下半屏 380px 全空。 */
+.workspace.view-overview {
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: start;
+  overflow: auto;
+}
+
+.overview-main,
+.overview-side {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* auto-fit 一套规则吃三档：手机 366px → 2 列，平板/桌面主栏 → 4 列并排。
+   写死 4 列时平板会掉成 2×2，每张卡 430px 宽只放一个数字，白占一屏。 */
+.workspace-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.workspace.view-tasks .workspace-task-card,
+.workspace.view-tasks .workspace-secondary-card {
+  height: 100%;
+  min-height: 0;
+}
+
+.workspace.view-schedule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.workspace.view-schedule .schedule-shell {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface-1);
+}
+
+.schedule-tasks-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border: 0;
+  background: rgba(22, 28, 36, 0.28);
+}
+
+.workspace.view-schedule .workspace-task-card {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 12px;
+  z-index: 6;
+  width: min(420px, calc(100% - 24px));
+  height: auto;
+  min-height: 0;
+  pointer-events: none;
+  transform: translateX(calc(-100% - 24px));
+  transition: transform 0.2s var(--ease-out);
+}
+
+.workspace.view-schedule .workspace-task-card.open {
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+/* 番茄页交给 .timer-page 自己排双栏。旧版是「一张撑满视口的大卡片 + 内部
+   align-items:center」，1440×900 下光环上下就空了 200px 出来。 */
+.workspace.view-timer {
+  display: block;
+  min-height: 0;
+  overflow: auto;
+}
+
+.workspace-task-card,
+.workspace-secondary-card {
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .workspace.view-tasks {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(220px, 1.1fr) minmax(220px, 0.9fr);
+    overflow: hidden;
+  }
+
+  /* 手机上待办页的核心是任务列表，本周日程是配角，不能对半分屏幕 */
+  @media (max-width: 760px) {
+    .workspace.view-tasks {
+      grid-template-rows: minmax(0, 2.2fr) minmax(150px, 1fr);
+      gap: 12px;
+    }
+  }
+
+  .workspace.view-overview {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+
+  .workspace.view-tasks .workspace-task-card,
+  .workspace.view-tasks .workspace-secondary-card {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .workspace.view-schedule {
+    display: grid;
+    overflow: hidden;
+  }
+
+  .workspace.view-schedule .schedule-shell {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .workspace.view-schedule .workspace-task-card {
+    width: min(360px, calc(100% - 16px));
+    top: 8px;
+    bottom: 8px;
+    left: 8px;
+  }
+}

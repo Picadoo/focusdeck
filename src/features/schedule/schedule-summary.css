@@ -1,0 +1,181 @@
+.schedule-summary {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.schedule-summary-header {
+  align-items: flex-start;
+}
+
+.summary-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.summary-link:hover {
+  color: var(--accent-dark);
+}
+
+.schedule-summary-body {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 16px 16px 20px;
+}
+
+.agenda-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.agenda-group-label {
+  margin: 0 4px 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 尺度跟着待办行走。原来时间 32px、标题 20px、行高 80px，
+   和左栏收紧后的任务行并排时重了整整一档。 */
+.agenda-item {
+  display: grid;
+  grid-template-columns: minmax(76px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.agenda-time {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.agenda-time .tabular {
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.agenda-event-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agenda-event-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  color: var(--text-main);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agenda-event-repeat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.agenda-event-duration {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.agenda-event-type,
+.agenda-event-action {
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--text-dim);
+  background: var(--surface-1);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.agenda-event-type.task {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.agenda-event-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #7a4100;
+  background: var(--focus-dim);
+}
+
+.agenda-event-action:hover {
+  background: rgba(255, 171, 0, 0.24);
+}
+
+.schedule-summary-empty {
+  display: flex;
+  min-height: 240px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 16px;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  text-align: center;
+}
+
+.schedule-summary-empty svg {
+  color: var(--accent);
+}
+
+.schedule-summary-empty p {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.schedule-summary-empty span {
+  max-width: 220px;
+  font-size: 14px;
+  line-height: 1.5;
+}

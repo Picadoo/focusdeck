@@ -1,0 +1,169 @@
+.timer-alert-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(28, 37, 46, 0.72);
+  backdrop-filter: blur(10px);
+  contain: layout paint;
+}
+
+/**
+ * 整屏色层：番茄钟响时人可能没戴耳机，得靠颜色把余光拉过来。
+ * 脉冲三次（3 × 600ms ≈ 1.8s）后停在一层淡色，不持续闪。
+ * 600ms 一次 ≈ 1.7 Hz，压在 WCAG「每秒不超过三次闪光」的光敏性癫痫红线之下。
+ */
+.timer-alert-flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  pointer-events: none;
+  animation: timer-alert-pulse 600ms ease-in-out 3;
+}
+
+@keyframes timer-alert-pulse {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 0.62;
+  }
+}
+
+.timer-alert-overlay.tone-focus .timer-alert-flash {
+  background: var(--focus);
+}
+
+.timer-alert-overlay.tone-break .timer-alert-flash {
+  background: var(--accent);
+}
+
+@keyframes timer-alert-card-in {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.timer-alert-card {
+  position: relative;
+  display: flex;
+  width: min(100%, 440px);
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 36px 32px 28px;
+  border-radius: 24px;
+  text-align: center;
+  color: var(--text-main);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-lg);
+  animation: timer-alert-card-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* 系统里开了减弱动效就只留静态色层：这东西是突然全屏亮起的，不能无视这个设置 */
+@media (prefers-reduced-motion: reduce) {
+  .timer-alert-flash,
+  .timer-alert-card {
+    animation: none;
+  }
+}
+
+.timer-alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+}
+
+.timer-alert-overlay.tone-focus .timer-alert-icon {
+  color: #1c252e;
+  background: var(--focus);
+}
+
+.timer-alert-overlay.tone-break .timer-alert-icon {
+  color: #ffffff;
+  background: var(--accent);
+}
+
+.timer-alert-card h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.timer-alert-card p {
+  margin: 0;
+  max-width: 28em;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.timer-alert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.timer-alert-primary,
+.timer-alert-secondary {
+  min-height: 48px;
+  min-width: 132px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.timer-alert-overlay.tone-focus .timer-alert-primary {
+  color: #1c252e;
+  background: var(--focus);
+}
+
+.timer-alert-overlay.tone-break .timer-alert-primary {
+  color: #ffffff;
+  background: var(--accent);
+}
+
+.timer-alert-secondary {
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: var(--surface-1);
+}
+
+.timer-alert-primary:hover,
+.timer-alert-secondary:hover {
+  filter: brightness(0.96);
+}
+
+@media (max-width: 560px) {
+  .timer-alert-card {
+    padding: 28px 20px 22px;
+  }
+
+  .timer-alert-card h2 {
+    font-size: 26px;
+  }
+
+  .timer-alert-primary,
+  .timer-alert-secondary {
+    width: 100%;
+  }
+}

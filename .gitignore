@@ -22,3 +22,39 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Capacitor / Android
+android/.gradle
+android/.idea
+android/app/build
+android/build
+android/local.properties
+android/captures
+android/*.apk
+android/*.aab
+android/*.keystore
+android/*.jks
+*.apk
+*.aab
+*.keystore
+*.jks
+.capacitor
+ios
+
+# 测试环境的截图产物：脚本本身入库，跑出来的图不入
+testkit/shots
+testkit/__pycache__
+
+# 调试期的一次性产物：仓库根曾躺着 150+ 个 tmp-*.png，一个都不该进仓库
+tmp-*
+tmp_*
+.tmp-chrome-profile*
+
+# 服务端运行时数据：SQLite 本体 + WAL/SHM，还有自举出来的密钥与密码哈希
+server/data
+
+# 真实凭据只留 .env.example 作模板
+.env
+.env.*
+!.env.example
+

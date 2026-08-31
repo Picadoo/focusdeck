@@ -1,26 +1,273 @@
-.timer-profile-select {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
-  color: var(--text-main);
-  font-size: 12px;
-  outline: none;
+/* Minimals 的双栏骨架：主栏放专注环，右栏 320px 放任务与统计。
+   每张卡按内容定高，页面自然滚动——不再有「整页一张大卡 + 内部垂直居中」
+   撑出来的那两截死白。 */
+.timer-page {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  /* stretch 而不是 start：让专注环那张卡长到与右栏等高，环在其中垂直居中。
+     用 start 时两栏各按内容收边，右栏一长就露出一条参差的底边。 */
+  align-items: stretch;
 }
 
-.timer-body {
+.timer-page > .timer-topbar,
+.timer-page > .timer-settings-panel,
+.timer-page > .timer-transition-notice {
+  grid-column: 1 / -1;
+}
+
+.timer-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 4px;
+}
+
+.timer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+}
+
+.timer-profile-select,
+.timer-task-select {
+  height: 36px;
+  min-width: 128px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  color: var(--text-main);
+  background: var(--surface-2);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.timer-profile-select:focus,
+.timer-task-select:focus {
+  border-color: var(--text-main);
+  background: var(--surface-1);
+}
+
+.timer-task-select {
+  width: 100%;
+  min-width: 0;
+  height: 54px;
+  font-size: 15px;
+}
+
+.timer-settings-toggle {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  background: var(--surface-1);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.timer-settings-toggle:hover,
+.timer-settings-toggle.active {
+  color: var(--text-main);
+  background: var(--surface-2);
+}
+
+.timer-back-button {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.timer-back-button:hover {
+  background: var(--accent-dark);
+}
+
+.timer-settings-panel {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.timer-settings-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.timer-settings-heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timer-settings-heading strong {
+  color: var(--text-main);
+  font-size: 16px;
+}
+
+.timer-settings-heading span,
+.timer-settings-hint {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.timer-settings-hint {
+  white-space: nowrap;
+}
+
+.timer-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.timer-setting-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.timer-number-input {
+  display: flex;
   align-items: center;
-  padding: var(--panel-p);
-  gap: var(--gap-lg);
+  gap: 6px;
+  height: 54px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.timer-number-input input {
+  width: 100%;
+  min-width: 0;
+  color: var(--text-main);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.timer-number-input em {
+  color: var(--text-dim);
+  font-size: 14px;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.timer-alert-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.timer-alert-toggle,
+.timer-alert-preview {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  background: var(--surface-1);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.timer-alert-toggle input {
+  accent-color: var(--accent);
+}
+
+.timer-alert-toggle.active,
+.timer-alert-preview:hover {
+  color: var(--text-main);
+  background: var(--surface-2);
+}
+
+.timer-alert-preview {
+  margin-left: auto;
+}
+
+.timer-transition-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  color: var(--text-main);
+  background: var(--accent-dim);
+}
+
+.timer-transition-notice > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timer-transition-notice strong {
+  font-size: 16px;
+}
+
+.timer-transition-notice span {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.timer-transition-notice button {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.timer-stage {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 4vh, 48px) 24px;
+}
+
+.timer-side {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timer-focus-area {
+  display: flex;
+  max-width: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .timer-ring-wrapper {
   position: relative;
-  width: 240px;
-  height: 240px;
-  flex-shrink: 0;
+  width: clamp(240px, 28vw, 380px);
+  height: clamp(240px, 28vw, 380px);
 }
 
 .timer-ring {
@@ -32,12 +279,15 @@
 .timer-ring-bg {
   fill: none;
   stroke: var(--surface-3);
-  stroke-width: 8;
+  stroke-width: 5;
 }
 
 .timer-ring-progress {
   fill: none;
-  stroke-width: 8;
+  stroke: var(--ring-color, var(--focus));
+  stroke-width: 5;
+  stroke-dasharray: 339.292;
+  stroke-dashoffset: calc(339.292 * (1 - var(--ring-progress, 0)));
   transition: stroke-dashoffset 1s linear, stroke 0.3s var(--ease-out);
 }
 
@@ -48,94 +298,108 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--gap-xs);
+  gap: 10px;
 }
 
 .timer-remaining {
-  font-size: 56px;
-  font-weight: 700;
-  letter-spacing: -1px;
-  line-height: 1;
+  color: var(--ring-color, var(--focus));
+  font-family: var(--font-display);
+  font-size: clamp(64px, 8vw, 112px);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
 }
 
 .timer-phase {
-  font-size: 14px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 700;
 }
 
-.timer-task-card {
+.timer-steps {
   display: flex;
-  align-items: center;
-  gap: var(--gap-sm);
-  width: 100%;
-  padding: 10px 12px;
+  gap: 8px;
+}
+
+.timer-step {
+  padding: 5px 10px;
+  border-radius: 8px;
+  color: var(--text-dim);
   background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.timer-task-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+.timer-step.active {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
 }
 
-.timer-task-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-main);
-  white-space: nowrap;
+.timer-focus-note {
+  max-width: 520px;
+  margin-top: 18px;
   overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.timer-task-project {
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: 14px;
   font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .timer-controls {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--gap-sm);
+  gap: 10px;
   width: 100%;
+  margin-top: 18px;
 }
 
 .timer-btn {
-  display: flex;
+  display: inline-flex;
+  min-height: 36px;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.16s var(--ease-out);
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .timer-btn.primary {
-  flex: 1;
-  min-width: 120px;
+  min-width: 180px;
 }
 
-.timer-btn.primary:hover {
-  filter: brightness(1.12);
-  transform: translateY(-1px);
+.timer-btn.primary.tone-primary {
+  color: #ffffff;
+  background: var(--accent);
+}
+
+.timer-btn.primary.tone-warning {
+  color: #1c252e;
+  background: var(--focus);
+}
+
+.timer-btn.primary.tone-primary:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.timer-btn.primary.tone-warning:hover:not(:disabled) {
+  background: #b76e00;
+  color: #ffffff;
 }
 
 .timer-btn.ghost {
-  background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text-muted);
+  background: var(--surface-1);
 }
 
 .timer-btn.ghost:hover:not(:disabled) {
-  background: var(--surface-3);
   color: var(--text-main);
+  background: var(--surface-2);
 }
 
 .timer-btn:disabled {
@@ -143,32 +407,297 @@
   cursor: not-allowed;
 }
 
+.timer-context,
+.timer-stats-card {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+/* ---------- 任务选择器 ----------
+   原来是个 <select>：手机上点开是系统滚轮，看不到项目和番茄进度，
+   要换任务得盲选。改成列表后一眼能看到归属项目和已完成/预估。 */
+
+.timer-picker {
+  display: flex;
+  max-height: 320px;
+  margin: 0;
+  /* 右侧留出滚动条槽，否则滚动条会压在「0/2」这类计数上 */
+  padding: 0 6px 0 0;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(145, 158, 171, 0.4) transparent;
+}
+
+/* 只在真的溢出时挂（由 JS 量出来），否则最后一行会被无端渐隐掉 */
+.timer-picker.scrollable {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+}
+
+.timer-picker-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  color: var(--text-main);
+  background: transparent;
+  text-align: left;
+}
+
+.timer-picker-row:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.timer-picker-row.selected {
+  background: var(--accent-dim);
+}
+
+.timer-picker-row:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.timer-picker-mark {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+
+.timer-picker-row.selected .timer-picker-mark {
+  color: var(--accent);
+}
+
+.timer-picker-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.timer-picker-title {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timer-picker-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.timer-picker-meta em {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.timer-picker-count {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.timer-picker-empty {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.timer-context-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.timer-context-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timer-context-label em {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.timer-task-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.timer-task-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  color: var(--accent);
+  background: var(--surface-2);
+}
+
+.timer-task-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timer-task-title {
+  overflow: hidden;
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+}
+
+.timer-task-project {
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .timer-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--gap-sm);
-  width: 100%;
-  margin-top: auto;
+  gap: 8px;
 }
 
 .timer-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  text-align: center;
   background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
 }
 
 .timer-stat-value {
-  font-size: 22px;
-  font-weight: 700;
   color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
 }
 
 .timer-stat-label {
-  font-size: 11px;
-  color: var(--text-muted);
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+@media (max-width: 900px) {
+  .timer-settings-grid {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .timer-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .timer-side {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .timer-side > .card {
+    flex: 1 1 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .timer-topbar {
+    /* 标题与控件挤在同一行时会把「番茄钟」折成两行，各占一行反而更矮也更整齐 */
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 0;
+  }
+
+  .timer-settings-panel {
+    padding: 20px 16px;
+  }
+
+  .timer-side {
+    flex-direction: column;
+  }
+
+  /* 必须连 flex 一起还原：平板档那条 flex:1 1 0 是给横排用的，
+     竖排时 flex-basis:0 会把两张卡的高度基准压成 0，直接塌成 40px 空壳 */
+  .timer-side > .card {
+    flex: 0 0 auto;
+  }
+
+  .timer-settings-heading {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .timer-settings-hint {
+    white-space: normal;
+  }
+
+  .timer-settings-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .timer-transition-notice {
+    align-items: flex-start;
+  }
+
+  .timer-header-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .timer-profile-select {
+    min-width: 0;
+    flex: 1 1 84px;
+  }
+
+  .timer-settings-toggle {
+    flex: 0 0 auto;
+    padding: 0 10px;
+  }
+
+  /* onBack 就是切回待办视图，底部导航已有同一入口，手机上重复占位 */
+  .timer-back-button {
+    display: none;
+  }
+
+  .timer-stage {
+    padding: 24px 14px;
+  }
+
+  .timer-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .timer-btn.primary {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
 }
