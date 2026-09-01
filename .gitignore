@@ -56,6 +56,9 @@ tmp_*
 # 服务端运行时数据：SQLite 本体 + WAL/SHM，还有自举出来的密钥与密码哈希
 server/data
 
+# pack-server.mjs 的产物：4.3 MB，每次发布都重打，仓库里留着没意义
+focusdeck-svc.tar.gz
+
 # 真实凭据只留 .env.example 作模板
 .env
 .env.*
