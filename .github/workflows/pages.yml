@@ -1,0 +1,61 @@
+﻿name: Deploy demo to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    # README / 浼氳瘽鏃ュ織涔嬬被鐨勬敼鍔ㄤ笉蹇呴噸鏂板彂涓€娆℃紨绀虹珯
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 鍙繚鐣欐渶鍚庝竴娆￠儴缃诧紱鎺掗槦涓殑鏃х殑鐩存帴涓㈡帀锛屼絾涓嶆墦鏂鍦ㄥ彂甯冪殑閭ｆ
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec tsc -b
+
+      # Pages 鎶婄珯鐐规斁鍦?/focusdeck/ 瀛愯矾寰勪笅锛岃祫婧愬紩鐢ㄥ繀椤诲甫鍓嶇紑銆?
+      # 鍙湪杩欓噷鐢?CLI 瑕嗙洊锛屼笉鏀?vite.config.ts 鈥斺€?瀹夊崜 (capacitor://localhost)
+      # 鍜岃嚜鎵樼鏈嶅姟绔兘鏄粠鏍硅矾寰勫彂鐨勶紝鎶?base 鍐欐浼氭妸閭ｄ袱涓紕鍧忋€?
+      - run: pnpm exec vite build --base=/focusdeck/
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
