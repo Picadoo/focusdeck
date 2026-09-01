@@ -1,6 +1,31 @@
 # FocusDeck
 
-第三屏全屏生产力工作台 —— 专业待办、番茄钟、课程表式日程三合一。
+第三屏全屏生产力工作台 —— 专业待办、番茄钟、课程表式日程三合一。中英双语，可选自托管同步。
+
+## 界面
+
+概览页：今日四项指标、时间线、完成度环、即将到期。
+
+![概览页](docs/screenshots/overview-zh.png)
+
+待办页（英文界面，顶栏 `中 / EN` 一键切换，切换即时生效）：左侧任务、右侧本周日程，日程事件会并进当天的任务视图。
+
+![待办页](docs/screenshots/tasks-en.png)
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/timer-zh.png" alt="番茄钟"></td>
+<td width="50%"><img src="docs/screenshots/schedule-zh.png" alt="课程表式日程"></td>
+</tr>
+<tr>
+<td>番茄钟：三种档位，可绑定任务</td>
+<td>课程表式周视图：当前时间线、重复事件</td>
+</tr>
+</table>
+
+番茄钟结束时的全屏色脉冲（截于波峰；600ms 一次、脉冲三次即停，压在 WCAG 光敏性癫痫红线之下）：
+
+![番茄钟结束提醒](docs/screenshots/timer-alert-pulse.png)
 
 ## 当前进度
 
@@ -17,7 +42,7 @@
 
 ## 已实现功能
 
-- 专业深色仪表盘布局，三栏：待办 / 日程 / 番茄钟
+- 浅色仪表盘布局，四个页面：概览 / 待办 / 日程 / 番茄钟，桌面走顶栏、手机走底栏
 - 待办事项：项目、优先级、标签、搜索、完成状态、进度条、快速添加
 - 番茄钟：经典/深度/长专注三种配置，防漂移计时，开始/暂停/继续/跳过/重置，任务绑定
 - 课程表式周视图：全天 24 小时、当前时间线、默认示例事件、周切换
@@ -170,6 +195,7 @@ focusdeck/
 ├── server/                 # Hono + better-sqlite3 同步 API
 ├── testkit/                # Playwright 验收（冻结时钟 + 种子 + 量几何）
 ├── scripts/                # 开发辅助：i18n 扫描、内存守护、显示器探测
+├── docs/screenshots/       # README 用的界面截图
 ├── index.html
 ├── vite.config.ts
 ├── postcss.config.js
