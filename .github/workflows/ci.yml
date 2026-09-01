@@ -6,14 +6,14 @@ on:
   pull_request:
     branches: [main]
 
-# 鍚屼竴鍒嗘敮涓婂悗鎺ㄧ殑鎻愪氦鍙栨秷鍓嶄竴娆℃湭璺戝畬鐨勶紝閬垮厤杩炴帹鍑犳鏃舵帓闃熸氮璐归搴?
+# 同一分支上后推的提交取消前一次未跑完的，避免连推几次时排队浪费额度
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   web:
-    name: 鍓嶇锛堢被鍨?/ lint / 鍗曟祴 / 鏋勫缓锛?
+    name: 前端（类型 / lint / 单测 / 构建）
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -31,14 +31,14 @@ jobs:
 
       - run: pnpm test
 
-      # build 鑴氭湰鏈韩鏄?`tsc -b && vite build`锛岀被鍨嬫鏌ュ寘鍚湪鍐?
+      # build 脚本本身是 `tsc -b && vite build`，类型检查已包含在内
       - run: pnpm build
 
-      - name: i18n 瑕嗙洊鐜囷紙鏈蛋 t() 鐨勪腑鏂囧瓧闈㈤噺蹇呴』涓?0锛?
+      - name: i18n 覆盖率（未走 t() 的中文字面量必须为 0）
         run: node scripts/i18n-scan.mjs
 
   server:
-    name: 鏈嶅姟绔紙缂栬瘧锛?
+    name: 服务端（编译）
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -52,7 +52,7 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
 
-      # server/ 鏄嫭绔嬪瓙宸ョ▼锛岃蛋鑷繁鐨?package-lock.json 鑰屼笉鏄牴鐩綍鐨?pnpm
+      # server/ 是独立子工程，走自己的 package-lock.json 而不是根目录的 pnpm
       - run: npm ci
 
       - run: npm run build

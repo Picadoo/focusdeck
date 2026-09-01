@@ -3,7 +3,7 @@
 on:
   push:
     branches: [main]
-    # README / 浼氳瘽鏃ュ織涔嬬被鐨勬敼鍔ㄤ笉蹇呴噸鏂板彂涓€娆℃紨绀虹珯
+    # README / 会话日志之类的改动不必重新发一次演示站
     paths:
       - 'src/**'
       - 'public/**'
@@ -19,7 +19,7 @@ permissions:
   pages: write
   id-token: write
 
-# 鍙繚鐣欐渶鍚庝竴娆￠儴缃诧紱鎺掗槦涓殑鏃х殑鐩存帴涓㈡帀锛屼絾涓嶆墦鏂鍦ㄥ彂甯冪殑閭ｆ
+# 只保留最后一次部署；排队中的旧的直接丢掉，但不打断正在发布的那次
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -41,9 +41,9 @@ jobs:
 
       - run: pnpm exec tsc -b
 
-      # Pages 鎶婄珯鐐规斁鍦?/focusdeck/ 瀛愯矾寰勪笅锛岃祫婧愬紩鐢ㄥ繀椤诲甫鍓嶇紑銆?
-      # 鍙湪杩欓噷鐢?CLI 瑕嗙洊锛屼笉鏀?vite.config.ts 鈥斺€?瀹夊崜 (capacitor://localhost)
-      # 鍜岃嚜鎵樼鏈嶅姟绔兘鏄粠鏍硅矾寰勫彂鐨勶紝鎶?base 鍐欐浼氭妸閭ｄ袱涓紕鍧忋€?
+      # Pages 把站点放在 /focusdeck/ 子路径下，资源引用必须带这个前缀。
+      # 只在这里用 CLI 覆盖，不写进 vite.config.ts —— 安卓 (capacitor://localhost)
+      # 和自托管服务端都是从根路径发的，base 写死会把那两条线弄坏。
       - run: pnpm exec vite build --base=/focusdeck/
 
       - uses: actions/upload-pages-artifact@v5
