@@ -114,18 +114,19 @@
   border-top: 1px dashed var(--divider-dashed);
 }
 
-/* 行高对齐 Minimals 的列表尺度。原来是 148px + 24px 标题，
-   1440×900 一屏只装得下 4 条，10 条任务要滚三屏才看得完。 */
+/* 行高与字号的取舍在这里翻过一次向：早先为了「一屏多装几条」把行压到 88px、
+   标题压到 17px，结果是条数上去了、单条却不好读。现在按可读性重新定尺度——
+   一屏少装一两条是有意为之，不是没算过。 */
 .task-row {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  min-height: 88px;
-  padding: 16px 20px 16px 12px;
+  min-height: 96px;
+  padding: 18px 20px 18px 12px;
   background: var(--surface-1);
   transition: background 0.16s var(--ease-out);
   content-visibility: auto;
-  contain-intrinsic-size: auto 88px;
+  contain-intrinsic-size: auto 96px;
 }
 
 .task-row:hover {
@@ -205,7 +206,7 @@
 .task-title {
   overflow: hidden;
   color: var(--text-main);
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
   line-height: 1.4;
   display: -webkit-box;
@@ -231,7 +232,7 @@
   flex-wrap: wrap;
   gap: 12px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -320,7 +321,7 @@
   gap: 5px;
   color: var(--text-main);
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -467,13 +468,14 @@
   }
 }
 
-/* 手机端在桌面尺度上再收一档，并让出被装饰性控件占掉的横向空间 */
+/* 手机端只让出被装饰性控件占掉的横向空间，字号不再往下收：
+   手机是这个应用的主力场景，标题 16px / 次要信息 12px 在这里最难读。 */
 @media (max-width: 760px) {
   .task-row {
     min-height: 0;
     gap: 10px;
-    padding: 14px 12px;
-    contain-intrinsic-size: auto 76px;
+    padding: 16px 12px;
+    contain-intrinsic-size: auto 88px;
   }
 
   /* 拖拽排序是鼠标的交互，手机上这个把手只是白占横向空间 */
@@ -487,27 +489,28 @@
   }
 
   .task-title {
-    font-size: 16px;
-    line-height: 1.3;
+    font-size: 18px;
+    line-height: 1.35;
   }
 
   .task-meta {
-    gap: 10px;
-    font-size: 12px;
+    gap: 8px;
+    font-size: 14px;
   }
 
-  /* 这两个不跟着 .task-meta 走，得单独压；不压下来元信息会折成两行 */
+  /* 这两个字号跟 .task-meta 齐平；元信息因此可能折成两行——
+     行会自己长高（min-height:0），这是为可读性有意付的代价 */
   .task-due,
   .task-pomos {
-    font-size: 12px;
+    font-size: 14px;
     gap: 4px;
   }
 
   .task-due svg,
   .task-pomos svg,
   .task-project-dot {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
 
   .task-priority {
@@ -522,6 +525,25 @@
   .task-action {
     min-width: 36px;
     padding: 0;
+  }
+}
+
+/* 360px 这一档，元信息三件套（项目/截止/番茄）单行只差十来个像素就放得下。
+   与其为此把字号降回 12px，不如把这点像素从间距里挤出来。
+   注意这里留的是余量不是刚好够：系统字体调大时仍会折行，那时折行是对的，
+   行本身会长高（min-height:0），不会把文字吞掉。 */
+@media (max-width: 380px) {
+  .task-row {
+    padding: 16px 8px;
+  }
+
+  .task-meta {
+    gap: 5px;
+  }
+
+  .task-due,
+  .task-pomos {
+    gap: 3px;
   }
 }
 

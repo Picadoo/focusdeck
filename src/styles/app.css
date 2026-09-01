@@ -10,6 +10,10 @@
   background: var(--bg);
 }
 
+/* 抽屉里的内容（导航 + 升级卡 + 登录卡 + 通知自检）合起来要 1013px，
+   而抽屉高度就是一屏。此前既没给它滚动、子项又都能被 flex 压缩，结果是：
+   装不下的部分按 overflow:visible 画到抽屉外面去（看起来就是卡片糊在一起），
+   而且怎么都够不着。所以这里必须由抽屉自己承担滚动。 */
 .layout-nav {
   position: fixed;
   top: 0;
@@ -19,10 +23,19 @@
   width: min(var(--layout-nav-vertical-width), 86vw);
   height: 100%;
   flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
   background: var(--layout-nav-bg);
   border-right: 1px solid var(--layout-nav-border-color);
   transform: translateX(-100%);
   transition: transform var(--layout-transition-duration) var(--ease-out);
+}
+
+/* 一个都不许压缩。只有带 overflow 的子项才拿得到 min-height:0，
+   于是此前整整 233px 的亏空全压在导航段一个人身上，四个按钮被挤进 40px。 */
+.layout-nav > * {
+  flex-shrink: 0;
 }
 
 .app-shell.nav-open .layout-nav {
@@ -78,13 +91,14 @@
   letter-spacing: 0.02em;
 }
 
+/* grow 保留：屏够高时它撑开，把下面几张卡顶到底部。
+   shrink 必须是 0：屏不够高时由抽屉整体滚动，而不是把导航按钮压扁。 */
 .layout-nav-section {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: 4px;
   padding: 24px 16px 16px;
-  overflow: auto;
 }
 
 .nav-subheader {
@@ -616,6 +630,23 @@ textarea:focus-visible {
 }
 
 @media (max-width: 760px) {
+  /* 抽屉是模态的（有遮罩、点遮罩即关），那它就必须盖住底部导航。
+     此前底部导航 1200 > 抽屉 1101 > 遮罩 1100，导航条横切过抽屉下沿，
+     卡片滚到那一段就被压在半透明条底下——「重叠」的另一半成因就在这。
+     抽屉里本来就有同一套导航项，盖住不损失任何入口。 */
+  .app-shell.nav-open .layout-nav {
+    z-index: calc(var(--bottom-nav-zIndex) + 2);
+  }
+
+  .app-shell.nav-open .nav-backdrop {
+    z-index: calc(var(--bottom-nav-zIndex) + 1);
+  }
+
+  /* 盖住之后抽屉一直铺到屏幕底边，只需再避开手势条 */
+  .layout-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   /* 手机上导航由底部 bottom-nav 承担，顶部标签是重复的一套，白占 52px */
   .layout-header {
     grid-template-columns: 1fr;

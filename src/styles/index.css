@@ -92,6 +92,7 @@
   --layout-dashboard-content-px: 20px;
   --layout-nav-zIndex: 1101;
   --layout-header-zIndex: 1100;
+  --bottom-nav-zIndex: 1200;
   --layout-nav-bg: #ffffff;
   --layout-nav-border-color: rgba(145, 158, 171, 0.12);
   --layout-transition-easing: linear;
