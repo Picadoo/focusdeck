@@ -50,3 +50,6 @@ rows.sort((a, b) => b.count - a.count)
 for (const r of rows) console.log(String(r.count).padStart(4), r.file)
 console.log('----')
 console.log(`${grand} 处待翻译文案，分布在 ${rows.length} 个文件`)
+
+// 非零退出码是为了让 CI 能把它当门禁用。本地想只看报告不想要失败码，加 --report-only。
+if (grand > 0 && !process.argv.includes('--report-only')) process.exit(1)

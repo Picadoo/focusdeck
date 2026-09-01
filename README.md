@@ -1,5 +1,8 @@
 # FocusDeck
 
+[![CI](https://github.com/Picadoo/focusdeck/actions/workflows/ci.yml/badge.svg)](https://github.com/Picadoo/focusdeck/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-00a76f.svg)](LICENSE)
+
 第三屏全屏生产力工作台 —— 专业待办、番茄钟、课程表式日程三合一。中英双语，可选自托管同步。
 
 ## 界面
@@ -98,8 +101,9 @@ pnpm build
 查漏与验收：
 
 ```bash
-node scripts/i18n-scan.mjs          # 扫剩余未翻译的中文字面量，应为 0
-python testkit/verify_i18n.py       # 端到端：lang/title 跟随、两语言互斥、切换即时、刷新保持
+node scripts/i18n-scan.mjs                # 扫剩余未翻译的中文字面量；有漏翻则退出码 1（CI 门禁走这条）
+node scripts/i18n-scan.mjs --report-only  # 只看报告不要失败码
+python testkit/verify_i18n.py             # 端到端：lang/title 跟随、两语言互斥、切换即时、刷新保持
 ```
 
 ## 番茄钟结束提醒

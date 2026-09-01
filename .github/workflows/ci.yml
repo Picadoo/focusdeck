@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 同一分支上后推的提交取消前一次未跑完的，避免连推几次时排队浪费额度
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: 前端（类型 / lint / 单测 / 构建）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      # build 脚本本身是 `tsc -b && vite build`，类型检查包含在内
+      - run: pnpm build
+
+      - name: i18n 覆盖率（未走 t() 的中文字面量必须为 0）
+        run: node scripts/i18n-scan.mjs
+
+  server:
+    name: 服务端（编译）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      # server/ 是独立子工程，走自己的 package-lock.json 而不是根目录的 pnpm
+      - run: npm ci
+
+      - run: npm run build

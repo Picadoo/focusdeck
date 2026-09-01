@@ -13,6 +13,7 @@
   "bugs": {
     "url": "https://github.com/Picadoo/focusdeck/issues"
   },
+  "packageManager": "pnpm@11.0.9",
   "type": "module",
   "scripts": {
     "dev": "node --max-old-space-size=4096 --import ./scripts/dev-guard.mjs ./node_modules/vite/bin/vite.js",
