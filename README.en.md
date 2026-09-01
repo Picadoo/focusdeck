@@ -171,6 +171,64 @@ mounts static hosting with SPA fallback and tiered cache headers, so one process
 app and the API — no nginx required. CORS already allows `capacitor://localhost` and
 `tauri://localhost`, so the Android build can connect without further changes.
 
+## Deploying to your own server (systemd, no Docker)
+
+**Nothing is built on the target machine — no npm, no compiler.** The only native dependency,
+`better-sqlite3`, has its Linux prebuilt binary fetched locally and packed into the tarball. That
+constraint isn't fastidiousness: on a small VPS `npm install` is slow and can fail outright when it
+falls back to compiling a native module.
+
+One-time setup on the target — installing Node here means extracting the official tarball, not
+compiling anything:
+
+```bash
+NODE=v22.23.2
+curl -fsSL -o /tmp/node.tar.xz https://nodejs.org/dist/$NODE/node-$NODE-linux-x64.tar.xz
+sudo mkdir -p /opt/node && sudo tar -xJf /tmp/node.tar.xz -C /opt/node --strip-components=1
+
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin focusdeck
+sudo mkdir -p /opt/focusdeck/data && sudo chown -R focusdeck:focusdeck /opt/focusdeck
+```
+
+Credentials go in `/opt/focusdeck/.env` (`0600 root:root` is fine — systemd reads it as root before
+dropping privileges): `FOCUSDECK_USER`, `FOCUSDECK_PASSWORD_HASH`, `JWT_SECRET`. Omit the file and
+the server generates a secret and an initial password on first start, printing the password once.
+
+Then, for every release, one command locally:
+
+```bash
+node scripts/pack-server.mjs --node 22.23.2
+```
+
+It compiles the server, builds the front end, installs production dependencies only, swaps in the
+linux-x64 `better_sqlite3.node`, **verifies the first four bytes really are `ELF`**, and tars the
+result (~4.3 MB). That ELF check matters: `npm ci` installs the host platform's binary, and if
+`prebuild-install` fails silently you get a package that looks fine and only fails on the target
+with `invalid ELF header`.
+
+Ship it and restart:
+
+```bash
+scp focusdeck-svc.tar.gz user@host:/tmp/
+ssh user@host '
+  sudo rm -rf /opt/focusdeck/svc && sudo mkdir -p /opt/focusdeck/svc
+  sudo tar -xzf /tmp/focusdeck-svc.tar.gz -C /opt/focusdeck/svc
+  sudo chown -R focusdeck:focusdeck /opt/focusdeck/svc
+  sudo cp /opt/focusdeck/svc/focusdeck.service /etc/systemd/system/
+  sudo systemctl daemon-reload && sudo systemctl enable --now focusdeck'
+```
+
+The unit is [`deploy/focusdeck.service`](deploy/focusdeck.service), already locked down with
+`ProtectSystem=strict` and `/opt/focusdeck/data` as the only writable path.
+
+Note that the front-end bundle in this package must be built **without `--base`** — the server
+serves from the root, so a prefix would 404 every asset. `--base=/focusdeck/` belongs to the GitHub
+Pages path only; the two cannot share one build.
+
+Everything stateful lives in `/opt/focusdeck/data`, so `cp -a` on that directory is a complete
+backup. **Changing `JWT_SECRET` signs every logged-in device out**, so reuse the same `.env` when
+migrating from an older deployment.
+
 > There is also a Docker setup in the repository (`Dockerfile`, `docker-compose.yml`,
 > `deploy/`). **It is retained for reference only and is no longer the recommended path.** It did
 > once pass eight end-to-end assertions on a real server — including "credentials survive a

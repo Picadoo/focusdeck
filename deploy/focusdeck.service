@@ -1,0 +1,46 @@
+[Unit]
+Description=FocusDeck sync server (Hono + SQLite)
+Documentation=https://github.com/Picadoo/focusdeck
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=focusdeck
+Group=focusdeck
+WorkingDirectory=/opt/focusdeck/svc
+
+# 凭据沿用容器时代那份 .env（FOCUSDECK_USER / FOCUSDECK_PASSWORD_HASH / JWT_SECRET）。
+# systemd 是以 root 读它再降权的，所以文件保持 0600 root:root 不影响启动，
+# 也就不需要为了让服务读到而放宽权限。复用同一份的意义在于：手机上已经登录的
+# token 是用这个 JWT_SECRET 签的，换一个就会集体失效。
+EnvironmentFile=/opt/focusdeck/.env
+
+Environment=HOST=0.0.0.0
+Environment=PORT=8788
+Environment=DB_PATH=/opt/focusdeck/data/focusdeck.db
+Environment=STATIC_DIR=/opt/focusdeck/svc/public
+
+ExecStart=/opt/node/bin/node /opt/focusdeck/svc/dist/index.js
+Restart=on-failure
+RestartSec=3
+
+# 收权：这个进程只需要读自己的代码、读写数据目录，别的都不该碰
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/focusdeck/data
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryMax=512M
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=focusdeck
+
+[Install]
+WantedBy=multi-user.target

@@ -133,39 +133,93 @@ python testkit/verify_timer_alert.py   # 三层各一组断言，量真实 DOM
 python testkit/shot_timer_alert.py     # 出截图：脉冲波峰与常驻态各一张
 ```
 
-## 服务端一键部署（Docker）—— 已停用
+## 部署到自己的服务器（systemd，不用 Docker）
 
-> **这一节不再是推荐路径。** 项目已明确不走 Docker、也不在任何服务器上构建，前端一律本机
-> `pnpm build` 出 `dist/` 再分发。下面的内容原样保留，是因为这套 compose 曾在真服务器上跑通过
-> 八条端到端断言（含「容器重建不掉线、不改密」），删掉就找不回来了——留作历史参考，别照着部署。
+**目标机上不跑任何 npm、不装编译器。** 唯一的原生依赖 `better-sqlite3` 的 Linux 预编译产物
+也在本机拉好一起打进包里。这条约束不是洁癖：小内存 VPS 上 `npm install` 既慢，又可能因为
+要现编原生模块直接失败。
 
-前端 `dist` 和同步 API 打进同一个镜像、同源提供服务，所以不需要额外的 nginx，也不用给前端配 `VITE_API_BASE`。
+### 一次性准备（目标机）
+
+装 Node 运行时 —— 解压官方 tarball，不编译、不需要 gcc：
+
+```bash
+NODE=v22.23.2
+curl -fsSL -o /tmp/node.tar.xz https://nodejs.org/dist/$NODE/node-$NODE-linux-x64.tar.xz
+sudo mkdir -p /opt/node && sudo tar -xJf /tmp/node.tar.xz -C /opt/node --strip-components=1
+
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin focusdeck
+sudo mkdir -p /opt/focusdeck/data && sudo chown -R focusdeck:focusdeck /opt/focusdeck
+```
+
+凭据写 `/opt/focusdeck/.env`（`0600 root:root` 就行——systemd 是以 root 读它再降权的）：
+
+```
+FOCUSDECK_USER=focus
+FOCUSDECK_PASSWORD_HASH=<node server/dist/hash-password.js 你的密码>
+JWT_SECRET=<随机长字符串>
+```
+
+不写也能起：首次启动会自己生成密钥与初始密码，写进 `DB_PATH` 所在目录，并**在日志里打印一次**。
+
+### 每次发布（本机一条命令）
+
+```bash
+node scripts/pack-server.mjs --node 22.23.2
+```
+
+它做六件事：编译服务端 → 构建前端 → 只装生产依赖 → 把 `better_sqlite3.node` 换成
+linux-x64 预编译版 → **校验头四字节确实是 ELF** → 打成 `focusdeck-svc.tar.gz`（约 4.3 MB）。
+
+那个 ELF 校验不是装饰：`npm ci` 装的是本机平台的版本，`prebuild-install` 万一静默失败，
+留下的就还是本机那个——包看着好好的，传上去启动才报 `invalid ELF header`。
+
+然后：
+
+```bash
+scp focusdeck-svc.tar.gz user@host:/tmp/
+ssh user@host '
+  sudo rm -rf /opt/focusdeck/svc && sudo mkdir -p /opt/focusdeck/svc
+  sudo tar -xzf /tmp/focusdeck-svc.tar.gz -C /opt/focusdeck/svc
+  sudo chown -R focusdeck:focusdeck /opt/focusdeck/svc
+  sudo cp /opt/focusdeck/svc/focusdeck.service /etc/systemd/system/
+  sudo systemctl daemon-reload && sudo systemctl enable --now focusdeck'
+```
+
+单元文件在 [`deploy/focusdeck.service`](deploy/focusdeck.service)，已经收好权
+（`ProtectSystem=strict`，只有 `/opt/focusdeck/data` 可写）。默认 `PORT=8788`、`HOST=0.0.0.0`。
+
+### 一个进程同时发前端和 API
+
+包里带 `public/`，`STATIC_DIR` 指向它，所以**不需要 nginx**：`/` 发前端、`/assets/*` 长缓存
+`immutable`、`index.html` 强制回源、未知路径回退到 SPA，而 `/api/*` 未命中仍是 JSON 404
+不会被兜底吃掉。CORS 已放行 `capacitor://localhost` 与 `tauri://localhost`，安卓端直接能连。
+
+前端资源打包时**不能带 `--base`**——服务端从根路径发，带前缀会让所有资源 404。
+`--base=/focusdeck/` 只用于 GitHub Pages 那条线，两者不能共用一份产物。
+
+### 备份与回滚
+
+数据全在 `/opt/focusdeck/data`（`focusdeck.db` + WAL，以及未用 `.env` 时自举出的
+`jwt-secret` / `password-hash`），`cp -a` 整个目录就是完整备份。
+
+**换 `JWT_SECRET` 会让所有已登录设备集体掉线**，所以从旧部署迁过来时要沿用同一份 `.env`。
+
+<details>
+<summary>历史：曾经的 Docker 部署（已停用，别照着做）</summary>
+
+`Dockerfile` / `docker-compose.yml` / `deploy/focusdeck.compose.yml` 还在仓库里，
+因为这套 compose 曾在真服务器上跑通过八条端到端断言（含「容器重建不掉线、不改密」），
+删掉就找不回来了。但它**不再是推荐路径**，现网已经切到上面的 systemd 方案。
 
 ```bash
 docker compose up -d --build
 docker compose logs focusdeck        # 首次启动会在这里打印初始密码
 ```
 
-打开 http://127.0.0.1:8787 即可。默认只绑回环，要直连改 `BIND=0.0.0.0`。
+数据在命名卷 `focusdeck-data`，备份导出这个卷。
 
-不写任何配置也能起来：JWT 密钥和初始密码在首次启动时生成，写进 `focusdeck-data` 卷，**容器重建后 token 不失效、密码不变**。想固定配置就 `cp .env.example .env` 再改，`.env` 里的值优先级高于自举出来的。
-
-改密码有三条路：
-
-```bash
-# 1) 明文交给容器自己算哈希
-echo "FOCUSDECK_PASSWORD=你的密码" >> .env && docker compose up -d
-
-# 2) 只把哈希写进 .env，明文不落盘
-docker compose run --rm --entrypoint node focusdeck dist/hash-password.js 你的密码
-
-# 3) 删掉持久化的哈希，下次启动重新生成并打印
-docker compose exec focusdeck rm /data/password-hash && docker compose restart
-```
-
-数据在命名卷 `focusdeck-data`（`focusdeck.db` + `jwt-secret` + `password-hash`），备份直接导出这个卷。
-
-`deploy/focusdeck.compose.yml` 是现网那套「宿主 nginx 发前端 + 容器只跑 API」的部署，保持原样不受影响：`STATIC_DIR` 指向的目录不存在时服务端会跳过内置静态站点，行为与改造前一致。
+</details>
 
 ## Tauri 构建说明
 
