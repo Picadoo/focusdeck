@@ -4,13 +4,15 @@
 
 ## 当前进度
 
-这是一个早期网页版实现，技术栈为：
+网页端是主体且功能完整，另有一个自托管同步服务端和一个安卓壳，技术栈为：
 
 - Vite 8 + React 19 + TypeScript 6
-- 手写 CSS + 设计令牌（`src/styles/index.css` 里 70 个 CSS 变量），**没有引入任何 UI 框架**
-  （`tailwindcss` 还挂在 devDependencies 里，但 `postcss.config.js` 只有 autoprefixer、源码里 `@tailwind` 指令 0 处，属未清理的残留）
+- 手写 CSS + 设计令牌（`src/styles/index.css` 里 70 个 CSS 变量），**没有引入任何 UI 框架**，
+  PostCSS 只挂 autoprefixer
 - Zustand（本地状态 + persist）
 - TanStack Query（为后续 Tauri IPC 预留）
+- 服务端：Hono + better-sqlite3 + JWT（`server/`，可选，不开也能用）
+- 安卓端：Capacitor 8 + 一个原生提醒插件（`android/`）
 - Tauri 2 已初始化（待本机 Rust 编译环境就绪后构建）
 
 ## 已实现功能
@@ -21,7 +23,9 @@
 - 课程表式周视图：全天 24 小时、当前时间线、默认示例事件、周切换
 - 沉浸模式：按 `F` 切换，按 `Esc` 退出
 - 番茄钟快捷键：`Space` 开始/暂停/继续（输入框外）
-- 数据本地持久化（localStorage）
+- 数据本地持久化（localStorage），**不连服务端也是完整可用的**
+- 可选的自托管云同步：`server/` 提供带 JWT 鉴权的增量同步 API，多端按时间戳合并，断网照常写、联网再对账
+- 安卓端：Capacitor 8 打包，带原生提醒插件与应用内通知自检面板（APK 能出包，**真机尚未验证**）
 - 中英双语，顶栏 `中 / EN` 一键切换：切换即时生效、刷新后保持，日期格式与星期名跟着走
 - 番茄钟结束提醒分三层，按「人在哪儿」覆盖：窗口可见时全屏色脉冲（三次即停，遵守
   `prefers-reduced-motion`）、切到别的标签页时标题闪烁 + favicon 变色、切到别的应用时常驻系统通知
@@ -29,12 +33,13 @@
 ## 运行方式
 
 ```bash
+git clone https://github.com/Picadoo/focusdeck.git
 cd focusdeck
 pnpm install
 pnpm dev
 ```
 
-然后打开 http://localhost:5173。
+然后打开 http://localhost:5173。**不需要跑服务端**——不登录时数据存在 localStorage 里，功能是完整的。
 
 ## 构建前端
 
@@ -179,3 +184,8 @@ focusdeck/
 - [ ] 任务拖拽排序与拖入日程表
 - [ ] 课程重复规则（单双周、指定周）
 - [ ] 原生通知、音效与托盘图标
+- [ ] 安卓真机验证（APK 已能出包，但至今没在真机上跑过）
+
+## 许可证
+
+[MIT](LICENSE)。

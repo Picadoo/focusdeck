@@ -2,6 +2,17 @@
   "name": "focusdeck",
   "private": true,
   "version": "0.1.0",
+  "description": "第三屏全屏生产力工作台：待办、番茄钟、课程表式日程三合一，中英双语，可选自托管同步",
+  "license": "MIT",
+  "author": "Picadoo",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picadoo/focusdeck.git"
+  },
+  "homepage": "https://github.com/Picadoo/focusdeck#readme",
+  "bugs": {
+    "url": "https://github.com/Picadoo/focusdeck/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "node --max-old-space-size=4096 --import ./scripts/dev-guard.mjs ./node_modules/vite/bin/vite.js",
