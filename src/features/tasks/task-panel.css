@@ -271,13 +271,13 @@
 .task-action-focus {
   width: 36px;
   padding: 0;
-  color: #7a4100;
+  color: var(--focus-darker);
   background: var(--focus-dim);
 }
 
 .task-action-focus:hover {
-  color: #7a4100;
-  background: rgba(255, 171, 0, 0.24);
+  color: var(--focus-darker);
+  background: var(--focus-soft);
 }
 
 .task-empty {
@@ -330,7 +330,7 @@
 }
 
 .task-due.today {
-  color: #b76e00;
+  color: var(--focus-dark);
 }
 
 .task-due.soon,

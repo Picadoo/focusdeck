@@ -180,6 +180,35 @@ docker compose exec focusdeck rm /data/password-hash && docker compose restart
 pnpm tauri-build
 ```
 
+## 改样式前先建像素基线
+
+CSS 重构最难的不是改，是证明没改坏——肉眼比两张截图、或者只跑「不溢出不报错」那类断言，
+都漏得掉一像素的偏移和一个色阶的差别。`testkit/pixel_baseline.py` 把「视觉零变化」变成一个能打印出来的数字：
+
+```bash
+python testkit/pixel_baseline.py capture .baseline/before
+# ...改 CSS，pnpm build...
+python testkit/pixel_baseline.py capture .baseline/after
+python testkit/pixel_baseline.py compare .baseline/before .baseline/after
+```
+
+四个页面 × 五档视口共 20 张，逐像素比，**不设容差**：一个像素差一个色阶也会被报出来，
+差异处会输出染红的 `diff-*.png`。
+
+**先跑一次空对照。** 什么都不改，连截两次再比——必须是零差异。这一步不是多余的：
+它验证的是「两次运行本来就一样」这个前提（时钟冻结在 `FROZEN`、数据来自固定种子、语言写死 `zh-CN`）。
+前提不成立的话，改完之后那个 PASS 什么也证明不了。
+
+## 设计令牌
+
+`src/styles/index.css` 的 `:root` 是**唯一**的颜色出处，各 feature CSS 里不该再出现色号字面量。
+
+配色照搬 Minimals 调色板，每个色都有 `main / dark / darker / contrastText` 四档。要注意
+**warning 的对比色是深色 `#1c252e` 不是白**（`--on-focus`）——`#ffab00` 太亮，白字在上面几乎看不清。
+
+例外只有三类，它们留着字面量是对的：`color-mix()` 与 `mask-image` 里的 `#000` 是算法参数不是颜色选择；
+日程网格线在 `.schedule-grid` 上有自己的一套局部变量；遮罩层的 `rgba(...)` 是各用一次的一次性值。
+
 ## 目录结构
 
 ```

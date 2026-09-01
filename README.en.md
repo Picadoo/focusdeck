@@ -187,6 +187,42 @@ MSYS2 / MinGW-w64 toolchain, or install the Visual Studio Build Tools and switch
 pnpm tauri-build
 ```
 
+## Take a pixel baseline before touching CSS
+
+The hard part of a CSS refactor isn't the change, it's proving you didn't break anything. Eyeballing
+two screenshots — or running only "nothing overflows, nothing errors" style assertions — misses a
+one-pixel shift or a one-step colour difference. `testkit/pixel_baseline.py` turns "no visual
+change" into a number you can print:
+
+```bash
+python testkit/pixel_baseline.py capture .baseline/before
+# ...change CSS, pnpm build...
+python testkit/pixel_baseline.py capture .baseline/after
+python testkit/pixel_baseline.py compare .baseline/before .baseline/after
+```
+
+Four views × five viewports, 20 shots, compared pixel by pixel with **no tolerance**: one pixel off
+by one step is reported, and differing shots are written out as red-tinted `diff-*.png`.
+
+**Run the null control first.** Capture twice without changing anything and compare — it must be
+zero. That step is not redundant: it verifies the premise that two runs are identical in the first
+place (clock frozen at `FROZEN`, state from a fixed seed, locale pinned to `zh-CN`). If that premise
+doesn't hold, the PASS you get after your change proves nothing.
+
+## Design tokens
+
+The `:root` block in `src/styles/index.css` is the **single** source of colour. Feature CSS files
+should contain no colour literals.
+
+The palette is transcribed from Minimals; every colour has `main / dark / darker / contrastText`.
+Note that **warning's contrast colour is dark `#1c252e`, not white** (`--on-focus`) — `#ffab00` is
+bright enough that white text on it is barely legible.
+
+There are exactly three kinds of exception, and they're right to stay literal: `#000` inside
+`color-mix()` and `mask-image` is an algorithm parameter rather than a colour choice; the schedule
+grid lines have their own scoped variables on `.schedule-grid`; and the scrim overlays use one-off
+`rgba(...)` values that appear once each.
+
 ## Repository layout
 
 ```

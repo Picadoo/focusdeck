@@ -140,12 +140,12 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #7a4100;
+  color: var(--focus-darker);
   background: var(--focus-dim);
 }
 
 .agenda-event-action:hover {
-  background: rgba(255, 171, 0, 0.24);
+  background: var(--focus-soft);
 }
 
 .schedule-summary-empty {

@@ -87,12 +87,12 @@
 }
 
 .timer-alert-overlay.tone-focus .timer-alert-icon {
-  color: #1c252e;
+  color: var(--on-focus);
   background: var(--focus);
 }
 
 .timer-alert-overlay.tone-break .timer-alert-icon {
-  color: #ffffff;
+  color: var(--on-accent);
   background: var(--accent);
 }
 
@@ -133,12 +133,12 @@
 }
 
 .timer-alert-overlay.tone-focus .timer-alert-primary {
-  color: #1c252e;
+  color: var(--on-focus);
   background: var(--focus);
 }
 
 .timer-alert-overlay.tone-break .timer-alert-primary {
-  color: #ffffff;
+  color: var(--on-accent);
   background: var(--accent);
 }
 

@@ -85,7 +85,7 @@
   gap: 8px;
   padding: 0 12px;
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--on-accent);
   background: var(--accent);
   font-size: 14px;
   font-weight: 700;
@@ -373,12 +373,12 @@
 }
 
 .timer-btn.primary.tone-primary {
-  color: #ffffff;
+  color: var(--on-accent);
   background: var(--accent);
 }
 
 .timer-btn.primary.tone-warning {
-  color: #1c252e;
+  color: var(--on-focus);
   background: var(--focus);
 }
 
@@ -387,8 +387,8 @@
 }
 
 .timer-btn.primary.tone-warning:hover:not(:disabled) {
-  background: #b76e00;
-  color: #ffffff;
+  background: var(--focus-dark);
+  color: var(--on-accent);
 }
 
 .timer-btn.ghost {

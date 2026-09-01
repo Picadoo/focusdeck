@@ -45,7 +45,7 @@
   height: 40px;
   flex-shrink: 0;
   border-radius: 12px;
-  color: #ffffff;
+  color: var(--on-accent);
   background: var(--accent);
   box-shadow: var(--accent-shadow);
 }
@@ -157,7 +157,7 @@
   margin: 8px 16px 24px;
   padding: 20px 16px 16px;
   border-radius: 16px;
-  color: #ffffff;
+  color: var(--on-accent);
   background:
     linear-gradient(135deg, rgba(0, 75, 80, 0.92) 0%, rgba(0, 120, 103, 0.88) 48%, rgba(0, 167, 111, 0.86) 100%);
   box-shadow: var(--shadow-md);
@@ -326,7 +326,7 @@
   gap: 10px;
   padding: 8px 14px 8px 12px;
   border-radius: 12px;
-  color: #7a4100;
+  color: var(--focus-darker);
   background: var(--focus-dim);
   font-size: 16px;
   font-weight: 700;
@@ -340,7 +340,7 @@
 }
 
 .timer-status-label {
-  color: #b76e00;
+  color: var(--focus-dark);
   font-size: 13px;
   font-weight: 700;
 }
@@ -354,7 +354,7 @@
 }
 
 .timer-status:hover {
-  background: rgba(255, 171, 0, 0.24);
+  background: var(--focus-soft);
 }
 
 .layout-main {
@@ -498,7 +498,7 @@
   min-height: 36px;
   padding: 0 12px;
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--on-accent);
   background: var(--accent);
   font-size: 14px;
   font-weight: 700;
@@ -555,17 +555,17 @@
 }
 
 .label-warning {
-  color: #b76e00;
+  color: var(--focus-dark);
   background: rgba(255, 171, 0, 0.16);
 }
 
 .label-error {
-  color: #b71d18;
+  color: var(--danger-dark);
   background: var(--danger-dim);
 }
 
 .label-info {
-  color: #006c9c;
+  color: var(--info-dark);
   background: var(--info-dim);
 }
 

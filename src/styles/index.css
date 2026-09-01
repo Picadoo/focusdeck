@@ -29,6 +29,7 @@
   --accent-shadow: 0 8px 16px 0 rgba(0, 167, 111, 0.24);
   --focus: #ffab00;
   --focus-dim: rgba(255, 171, 0, 0.16);
+  --focus-soft: rgba(255, 171, 0, 0.24);
   --success: #22c55e;
   --success-dim: rgba(34, 197, 94, 0.14);
   --danger: #ff5630;
@@ -36,6 +37,21 @@
   --info: #00b8d9;
   --info-dim: rgba(0, 184, 217, 0.12);
   --now-line: #ff5630;
+
+  /* 每个色的 dark / darker 之前都散在各 feature CSS 里写死 hex，改一次配色要翻五个文件。
+     值全部取自 Minimals 调色板对应槽位（见 DESIGN.md 的色表），不是重新配的色，
+     所以收进来是零视觉变化的纯搬家。绿色的 --accent-dark / --accent-darker 早就在上面了，
+     这里补的是当初漏掉的另外三个色。 */
+  --focus-dark: #b76e00; /* warning.dark */
+  --focus-darker: #7a4100; /* warning.darker */
+  --danger-dark: #b71d18; /* error.dark */
+  --info-dark: #006c9c; /* info.dark */
+
+  /* 放在彩色底上的文字色。绝大多数是白，唯独 warning 例外——#ffab00 太亮，
+     Minimals 给它的 contrastText 是深色 #1c252e。这条不是随手挑的，
+     写死成白色会让「专注完成」那类琥珀底按钮的文字几乎看不清。 */
+  --on-accent: #ffffff;
+  --on-focus: #1c252e; /* warning.contrastText */
 
   /* Elevation */
   --shadow-sm: 0 1px 2px 0 rgba(145, 158, 171, 0.16);

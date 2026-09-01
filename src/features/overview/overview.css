@@ -81,7 +81,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  color: #ffffff;
+  color: var(--on-accent);
 }
 
 /* 右上角 45° 渐变色块：Minimals 用它给卡片一个方向感，不承载任何数据 */
@@ -106,21 +106,21 @@
 }
 
 .widget-summary.tone-info .widget-summary-icon {
-  background: linear-gradient(135deg, var(--info) 0%, #006c9c 100%);
+  background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
 }
 .widget-summary.tone-info .widget-summary-blob {
   background: linear-gradient(to right, var(--info), transparent);
 }
 
 .widget-summary.tone-warning .widget-summary-icon {
-  background: linear-gradient(135deg, var(--focus) 0%, #b76e00 100%);
+  background: linear-gradient(135deg, var(--focus) 0%, var(--focus-dark) 100%);
 }
 .widget-summary.tone-warning .widget-summary-blob {
   background: linear-gradient(to right, var(--focus), transparent);
 }
 
 .widget-summary.tone-danger .widget-summary-icon {
-  background: linear-gradient(135deg, var(--danger) 0%, #b71d18 100%);
+  background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
 }
 .widget-summary.tone-danger .widget-summary-blob {
   background: linear-gradient(to right, var(--danger), transparent);
@@ -415,7 +415,7 @@
 
 .overview-focus-total {
   padding: 20px 24px;
-  color: #ffffff;
+  color: var(--on-accent);
   background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%);
 }
 

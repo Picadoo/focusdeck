@@ -21,7 +21,7 @@
 }
 
 .sync-dot.error {
-  color: #b71d18;
+  color: var(--danger-dark);
   background: var(--danger-dim);
 }
 

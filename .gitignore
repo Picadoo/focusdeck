@@ -45,6 +45,9 @@ ios
 testkit/shots
 testkit/__pycache__
 
+# 逐像素对照的前后基线：几十 MB 的 PNG，改一次样式就重截一次，没有留存价值
+.baseline
+
 # 调试期的一次性产物：仓库根曾躺着 150+ 个 tmp-*.png，一个都不该进仓库
 tmp-*
 tmp_*
