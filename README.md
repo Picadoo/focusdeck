@@ -205,6 +205,31 @@ ssh user@host '
 
 **换 `JWT_SECRET` 会让所有已登录设备集体掉线**，所以从旧部署迁过来时要沿用同一份 `.env`。
 
+### 运维速查
+
+```bash
+sudo systemctl status focusdeck            # 状态
+sudo journalctl -u focusdeck -n 50 -f      # 跟日志
+sudo systemctl restart focusdeck           # 重启（凭据与数据都不受影响）
+curl -s http://127.0.0.1:8788/api/health   # {"ok":true}
+```
+
+发布一个新版本 = 重新解包再 `restart`，数据目录不动，已登录设备不掉线。
+
+### 从 Docker 迁过来的话，先关掉容器的重启策略
+
+如果这台机器上原来跑着容器版，**光 `docker stop` 是不够的**。`restart: unless-stopped`
+的语义确实是「手动停过就不再自启」，但把这个安全性质寄托在「daemon 记得我手动停过」上太脆——
+机器重启后容器一旦回来，就会和 systemd 服务抢同一个端口，而这种冲突只在重启那一刻发作，
+平时完全看不出来。显式改掉：
+
+```bash
+docker update --restart=no <容器名>              # 改运行时容器
+sed -i 's/restart: unless-stopped/restart: "no"/' docker-compose.yml   # 改 compose，防止下次 up 又带回来
+```
+
+两处都要改：只改容器，下次 `docker compose up` 会按 compose 里的旧策略重新创建。
+
 <details>
 <summary>历史：曾经的 Docker 部署（已停用，别照着做）</summary>
 

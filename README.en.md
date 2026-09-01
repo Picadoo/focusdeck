@@ -229,6 +229,32 @@ Everything stateful lives in `/opt/focusdeck/data`, so `cp -a` on that directory
 backup. **Changing `JWT_SECRET` signs every logged-in device out**, so reuse the same `.env` when
 migrating from an older deployment.
 
+Day-to-day:
+
+```bash
+sudo systemctl status focusdeck            # status
+sudo journalctl -u focusdeck -n 50 -f      # follow logs
+sudo systemctl restart focusdeck           # restart; credentials and data are unaffected
+curl -s http://127.0.0.1:8788/api/health   # {"ok":true}
+```
+
+Shipping a new version is just unpacking over `svc/` and restarting — the data directory is
+untouched and logged-in devices stay logged in.
+
+If you are migrating off a container on the same host, **`docker stop` alone is not enough.**
+`restart: unless-stopped` does mean "don't restart something that was stopped by hand", but resting
+that safety property on the daemon remembering your manual stop is fragile: once the container
+comes back after a reboot it fights the systemd service for the same port, and that conflict only
+ever surfaces at boot time. Turn it off explicitly, in both places:
+
+```bash
+docker update --restart=no <container>
+sed -i 's/restart: unless-stopped/restart: "no"/' docker-compose.yml
+```
+
+Changing only the container isn't enough — the next `docker compose up` would recreate it with the
+old policy from the compose file.
+
 > There is also a Docker setup in the repository (`Dockerfile`, `docker-compose.yml`,
 > `deploy/`). **It is retained for reference only and is no longer the recommended path.** It did
 > once pass eight end-to-end assertions on a real server — including "credentials survive a
