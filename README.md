@@ -7,6 +7,9 @@
 
 第三屏全屏生产力工作台 —— 专业待办、番茄钟、课程表式日程三合一。中英双语，可选自托管同步。
 
+**▶ 在线试用：https://picadoo.github.io/focusdeck/** —— 不用登录、不用装任何东西，数据只存在你自己的浏览器里。
+安卓包在 [Releases](https://github.com/Picadoo/focusdeck/releases) 里。
+
 ## 界面
 
 概览页：今日四项指标、时间线、完成度环、即将到期。

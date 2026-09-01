@@ -8,6 +8,9 @@
 A full-screen productivity workspace for your third monitor — tasks, a Pomodoro timer, and a
 timetable-style schedule in one place. Bilingual (English / 简体中文), with optional self-hosted sync.
 
+**▶ Try it live: https://picadoo.github.io/focusdeck/** — no sign-in, nothing to install; your data
+stays in your own browser. Android builds are under [Releases](https://github.com/Picadoo/focusdeck/releases).
+
 ## Screenshots
 
 Overview: four daily metrics, a merged timeline, a completion ring, and what's due next.
