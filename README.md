@@ -3,6 +3,8 @@
 [![CI](https://github.com/Picadoo/focusdeck/actions/workflows/ci.yml/badge.svg)](https://github.com/Picadoo/focusdeck/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-00a76f.svg)](LICENSE)
 
+[English](README.en.md) · **简体中文**
+
 第三屏全屏生产力工作台 —— 专业待办、番茄钟、课程表式日程三合一。中英双语，可选自托管同步。
 
 ## 界面
