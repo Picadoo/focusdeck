@@ -65,6 +65,8 @@
 
 ## 运行方式
 
+[![Launch on PicoRunner](https://picorunner.com/badges/launch.svg)](https://picorunner.com/launch/?repository=https%3A%2F%2Fgithub.com%2FPicadoo%2Ffocusdeck)
+
 ```bash
 git clone https://github.com/Picadoo/focusdeck.git
 cd focusdeck
