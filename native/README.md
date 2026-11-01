@@ -16,7 +16,10 @@ cargo build --release --locked --manifest-path native/Cargo.toml
 ```powershell
 .\native\target\release\focusdeck-native.exe --windowed
 .\native\target\release\focusdeck-native.exe --windowed --view timer
+.\native\target\release\focusdeck-native.exe --windowed --display 3
 ```
+
+`--display` 按当前连接屏幕的枚举顺序从 1 编号（不等同于 Windows 的 `DISPLAY` 名称后缀）；窗口会在指定屏幕内居中并按该屏尺寸缩小。全屏启动也使用同一目标屏幕。
 
 `--view` 支持 `tasks`、`schedule`、`timer`、`overview`。`Space` 开始 / 暂停 / 继续计时；`F` 进入番茄页；`Esc` 先关闭弹层，再返回待办。输入框内的正常文字输入不会触发番茄快捷键。
 
@@ -59,7 +62,7 @@ cargo fmt --manifest-path native/Cargo.toml -- --check
 .\native\target\release\focusdeck-native.exe --smoke-test
 ```
 
-`--smoke-test` 使用内存示例数据，禁止持久化，验证两种语言、三种窗口尺寸和弹层的真实 GPUI 渲染后自行退出，不操作现有网页或用户存档。
+`--smoke-test` 使用内存示例数据，禁止持久化，在可见窗口中验证两种语言、三种窗口尺寸、弹层和日程显示开关后自行退出。它等待系统正常触发重绘，不调用强制绘制，不操作现有网页或用户存档；可配合 `--display 3` 指定验收屏幕。
 
 ## 源码
 
