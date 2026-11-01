@@ -586,6 +586,7 @@ impl Timer {
 #[serde(rename_all = "camelCase", default)]
 pub struct Preferences {
     pub locale: String,
+    pub show_task_agenda: bool,
     pub show_weekend: bool,
     pub schedule_full_day: bool,
     pub sound_enabled: bool,
@@ -596,6 +597,7 @@ impl Default for Preferences {
     fn default() -> Self {
         Self {
             locale: "zh".into(),
+            show_task_agenda: false,
             show_weekend: true,
             schedule_full_day: false,
             sound_enabled: true,

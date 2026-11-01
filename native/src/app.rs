@@ -87,14 +87,18 @@ pub struct FocusDeck {
     pub reduced_motion: bool,
     pub task_list: ListState,
     pub viewport_width: f32,
+    pub viewport_height: f32,
     pub draw_count: usize,
     pub persistence_enabled: bool,
 }
 
 impl FocusDeck {
     pub fn new(doc: Document, path: PathBuf, window: &mut Window, cx: &mut Context<Self>) -> Self {
-        let draft =
-            cx.new(|cx| TextInput::new(tr(&doc.ui.locale, "tasks.composer.placeholder"), cx));
+        let draft = cx.new(|cx| {
+            let mut input = TextInput::new(tr(&doc.ui.locale, "tasks.composer.placeholder"), cx);
+            input.font_size = 22.;
+            input
+        });
         let draft_due = cx.new(|cx| TextInput::new("YYYY-MM-DD HH:MM", cx));
         let mut subscriptions = Vec::new();
         subscriptions.push(cx.subscribe(&draft, |this, _, event, cx| match event {
@@ -194,6 +198,7 @@ impl FocusDeck {
             reduced_motion: crate::platform::reduced_motion(),
             task_list: ListState::new(0, ListAlignment::Top, px(200.)),
             viewport_width: 0.,
+            viewport_height: 0.,
             draw_count: 0,
             persistence_enabled: true,
         };
@@ -779,6 +784,7 @@ impl FocusDeck {
 impl Render for FocusDeck {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let width: f32 = window.viewport_size().width.into();
+        self.viewport_height = window.viewport_size().height.into();
         self.draw_count += 1;
         if self.viewport_width != width {
             self.viewport_width = width;

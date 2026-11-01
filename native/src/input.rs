@@ -36,6 +36,7 @@ pub struct TextInput {
     pub content: SharedString,
     pub placeholder: SharedString,
     pub secret: bool,
+    pub font_size: f32,
     selected_range: Range<usize>,
     selection_reversed: bool,
     marked_range: Option<Range<usize>>,
@@ -625,12 +626,12 @@ impl Render for TextInput {
             .on_mouse_move(cx.listener(Self::on_mouse_move))
             .w_full()
             .min_w_0()
-            .line_height(px(24.))
-            .text_size(px(15.))
+            .line_height(px(self.font_size * 1.4))
+            .text_size(px(self.font_size))
             .on_action(cx.listener(|_, _: &Submit, _, cx| cx.emit(InputEvent::Submit)))
             .child(
                 div()
-                    .h(px(32.))
+                    .h(px((self.font_size * 1.4 + 8.).max(32.)))
                     .w_full()
                     .p(px(4.))
                     .child(TextElement { input: cx.entity() }),
@@ -657,6 +658,7 @@ impl TextInput {
             content: "".into(),
             placeholder: placeholder.into(),
             secret: false,
+            font_size: 15.,
             selected_range: 0..0,
             selection_reversed: false,
             marked_range: None,

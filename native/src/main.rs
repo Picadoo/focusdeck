@@ -83,7 +83,7 @@ fn main() -> anyhow::Result<()> {
                     window_min_size: if smoke {
                         None
                     } else {
-                        Some(size(px(800.), px(600.)))
+                        Some(size(px(640.), px(480.)))
                     },
                     app_id: Some("com.focusdeck.native".into()),
                     ..Default::default()

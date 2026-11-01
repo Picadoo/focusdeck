@@ -67,32 +67,76 @@ impl FocusDeck {
             })
             .unwrap_or_default()
     }
+    fn toggle_task_agenda(&mut self, cx: &mut Context<Self>) {
+        self.doc.ui.show_task_agenda = !self.doc.ui.show_task_agenda;
+        self.save();
+        cx.notify();
+    }
     pub fn tasks_view(&self, width: f32, cx: &mut Context<Self>) -> Div {
-        let narrow = width <= 900.;
-        div()
-            .flex()
-            .when(narrow, |el| el.flex_col())
-            .gap(px(16.))
+        let inline = width >= 1180.;
+        row()
+            .relative()
             .size_full()
             .min_h_0()
+            .gap(px(16.))
             .child(
-                div()
-                    .flex()
-                    .min_w_0()
+                column()
+                    .flex_1()
                     .min_h_0()
-                    .flex_grow()
-                    .flex_basis(relative(if narrow { 0.69 } else { 1.55 / 2.55 }))
+                    .h_full()
                     .child(self.task_panel("main-tasks", cx)),
             )
-            .child(
-                div()
-                    .flex()
-                    .min_w_0()
-                    .min_h_0()
-                    .flex_grow()
-                    .flex_basis(relative(if narrow { 0.31 } else { 1. / 2.55 }))
-                    .child(self.agenda(cx)),
-            )
+            .when(self.doc.ui.show_task_agenda && inline, |el| {
+                el.child(
+                    column()
+                        .w(px(340.))
+                        .h_full()
+                        .min_h_0()
+                        .flex_shrink_0()
+                        .child(self.agenda(cx)),
+                )
+            })
+            .when(self.doc.ui.show_task_agenda && !inline, |el| {
+                el.child(
+                    div()
+                        .id("agenda-backdrop")
+                        .absolute()
+                        .inset_0()
+                        .bg(rgba(0x161c2448))
+                        .on_click(cx.listener(|this, _, _, cx| this.toggle_task_agenda(cx))),
+                )
+                .child(
+                    column()
+                        .absolute()
+                        .top_0()
+                        .bottom_0()
+                        .right_0()
+                        .w(px((width - 32.).min(400.)))
+                        .min_h_0()
+                        .p(px(8.))
+                        .gap(px(8.))
+                        .rounded(px(16.))
+                        .bg(rgb(0xffffff))
+                        .shadow_lg()
+                        .occlude()
+                        .child(
+                            row().justify_end().flex_shrink_0().child(
+                                button(
+                                    "close-agenda",
+                                    self.label("收起本周日程", "Hide weekly schedule"),
+                                    Some("X"),
+                                    false,
+                                )
+                                .h(px(44.))
+                                .text_size(px(16.))
+                                .on_click(
+                                    cx.listener(|this, _, _, cx| this.toggle_task_agenda(cx)),
+                                ),
+                            ),
+                        )
+                        .child(column().flex_1().min_h_0().child(self.agenda(cx))),
+                )
+            })
     }
     pub fn task_panel(&self, id: &'static str, cx: &mut Context<Self>) -> Div {
         let visible: Vec<_> = self.doc.data.tasks.iter().filter(|t| t.visible()).collect();
@@ -110,6 +154,8 @@ impl FocusDeck {
                 GREEN,
                 self.project_filter.is_empty(),
             )
+            .h(px(36.))
+            .text_size(px(16.))
             .on_click(cx.listener(|this, _, _, cx| {
                 this.project_filter.clear();
                 this.task_list.reset(0);
@@ -132,6 +178,8 @@ impl FocusDeck {
                     color(&project.color),
                     self.project_filter == project_id,
                 )
+                .h(px(36.))
+                .text_size(px(16.))
                 .child(dot(color(&project.color)))
                 .on_click(cx.listener(move |this, _, _, cx| {
                     this.project_filter = project_id.clone();
@@ -147,45 +195,119 @@ impl FocusDeck {
         if self.task_list.item_count() != count {
             self.task_list.reset(count);
         }
+        let short = self.viewport_height < 650.;
         card()
             .size_full()
             .min_h_0()
             .child(
-                row()
-                    .justify_between()
-                    .items_start()
-                    .px(px(24.))
-                    .pt(px(24.))
-                    .pb(px(16.))
-                    .gap(px(16.))
+                column()
+                    .flex_shrink_0()
+                    .px(px(20.))
+                    .pt(px(if short { 10. } else { 18. }))
+                    .pb(px(if short { 8. } else { 12. }))
+                    .gap(px(12.))
                     .child(
                         row()
+                            .justify_between()
                             .flex_wrap()
-                            .gap(px(14.))
-                            .flex_1()
-                            .child(title(self.t("tasks.title")))
-                            .child(chips),
-                    )
-                    .child(
-                        column()
-                            .items_end()
+                            .gap(px(12.))
                             .child(
-                                text(format!("{progress}%"), 24., GREEN)
-                                    .font_weight(FontWeight::EXTRA_BOLD)
-                                    .line_height(px(24.)),
+                                text(self.t("tasks.title"), 28., TEXT)
+                                    .font_weight(FontWeight::BOLD),
                             )
-                            .child(
-                                text(
-                                    self.tf(
-                                        "tasks.progress.remaining",
-                                        &[("count", remaining.to_string())],
+                            .when(short, |el| {
+                                let mut choices = vec![(String::new(), self.t("common.all"))];
+                                choices.extend(
+                                    self.doc
+                                        .data
+                                        .projects
+                                        .iter()
+                                        .filter(|p| p.meta.deleted_at.is_none())
+                                        .map(|p| (p.meta.id.clone(), p.name.clone())),
+                                );
+                                el.child(
+                                    self.select(
+                                        "task-project-filter",
+                                        self.doc
+                                            .data
+                                            .project(&self.project_filter)
+                                            .map(|p| p.name.clone())
+                                            .unwrap_or_else(|| self.t("common.all")),
+                                        choices,
+                                        cx,
+                                        |this, value, _, cx| {
+                                            this.project_filter = value;
+                                            this.task_list.reset(0);
+                                            cx.notify();
+                                        },
                                     ),
-                                    12.,
-                                    MUTED,
                                 )
-                                .font_weight(FontWeight::BOLD),
+                            })
+                            .child(
+                                row()
+                                    .flex_wrap()
+                                    .gap(px(12.))
+                                    .child(
+                                        display(format!("{progress}%"), 28., GREEN)
+                                            .font_weight(FontWeight::EXTRA_BOLD),
+                                    )
+                                    .when(!short, |el| {
+                                        el.child(
+                                            text(
+                                                self.tf(
+                                                    "tasks.progress.remaining",
+                                                    &[("count", remaining.to_string())],
+                                                ),
+                                                18.,
+                                                MUTED,
+                                            )
+                                            .font_weight(FontWeight::SEMIBOLD),
+                                        )
+                                    })
+                                    .when(self.view == View::Tasks, |el| {
+                                        el.child(
+                                            button(
+                                                "toggle-task-agenda",
+                                                self.label(
+                                                    if short {
+                                                        if self.doc.ui.show_task_agenda {
+                                                            "隐藏日程"
+                                                        } else {
+                                                            "显示日程"
+                                                        }
+                                                    } else if self.doc.ui.show_task_agenda {
+                                                        "隐藏本周日程"
+                                                    } else {
+                                                        "显示本周日程"
+                                                    },
+                                                    if short {
+                                                        if self.doc.ui.show_task_agenda {
+                                                            "Hide schedule"
+                                                        } else {
+                                                            "Show schedule"
+                                                        }
+                                                    } else if self.doc.ui.show_task_agenda {
+                                                        "Hide weekly schedule"
+                                                    } else {
+                                                        "Show weekly schedule"
+                                                    },
+                                                ),
+                                                Some("CalendarDays"),
+                                                false,
+                                            )
+                                            .h(px(44.))
+                                            .text_size(px(16.))
+                                            .on_click(
+                                                cx.listener(|this, _, window, cx| {
+                                                    this.toggle_task_agenda(cx);
+                                                    window.focus(&this.focus);
+                                                }),
+                                            ),
+                                        )
+                                    }),
                             ),
-                    ),
+                    )
+                    .when(!short, |el| el.child(chips)),
             )
             .child(
                 div()
@@ -207,6 +329,7 @@ impl FocusDeck {
                 div()
                     .flex_1()
                     .min_h_0()
+                    .overflow_hidden()
                     .when(count == 0, |el| {
                         el.child(
                             column()
@@ -237,6 +360,23 @@ impl FocusDeck {
         let delete_id = id.clone();
         let focus_id = id.clone();
         let drop_id = id.clone();
+        let panel_width = if self.view == View::Tasks {
+            self.viewport_width
+                - if self.doc.ui.show_task_agenda && self.viewport_width >= 1180. {
+                    396.
+                } else {
+                    40.
+                }
+        } else {
+            420.
+        };
+        let title_size = if self.view == View::Tasks {
+            (panel_width * 0.036).clamp(30., 40.)
+        } else {
+            28.
+        };
+        let meta_size = (title_size * 0.6).clamp(20., 24.);
+        let compact = panel_width < 680.;
         let project = self.doc.data.project(&task.project_id);
         let tone = project.map(|p| color(&p.color)).unwrap_or(GREEN);
         let priority = match task.priority.as_str() {
@@ -254,35 +394,37 @@ impl FocusDeck {
         };
         row()
             .id(SharedString::from(format!("task-{id}")))
-            .min_h(px(96.))
+            .w_full()
+            .min_h(px(128.))
             .items_start()
             .gap(px(12.))
-            .pl(px(12.))
-            .pr(px(20.))
-            .py(px(18.))
+            .px(px(16.))
+            .py(px(20.))
             .border_b_1()
             .border_dashed()
             .border_color(rgba(0x919eab3d))
             .hover(|s| s.bg(rgba(0x919eab14)))
             .when(task.status == "completed", |el| el.opacity(0.68))
-            .child(
-                row()
-                    .id(SharedString::from(format!("drag-{id}")))
-                    .w(px(28.))
-                    .h(px(36.))
-                    .justify_center()
-                    .flex_shrink_0()
-                    .cursor_grab()
-                    .child(icon("GripVertical", 24., DIM))
-                    .on_drag(TaskDrag(id.clone()), {
-                        let title = task.title.clone();
-                        move |_, _, _, cx| cx.new(|_| DragLabel(title.clone()))
-                    }),
-            )
+            .when(!compact, |el| {
+                el.child(
+                    row()
+                        .id(SharedString::from(format!("drag-{id}")))
+                        .w(px(28.))
+                        .h(px(44.))
+                        .justify_center()
+                        .flex_shrink_0()
+                        .cursor_grab()
+                        .child(icon("GripVertical", 26., DIM))
+                        .on_drag(TaskDrag(id.clone()), {
+                            let title = task.title.clone();
+                            move |_, _, _, cx| cx.new(|_| DragLabel(title.clone()))
+                        }),
+                )
+            })
             .child(
                 row()
                     .id(SharedString::from(format!("check-{id}")))
-                    .size(px(36.))
+                    .size(px(44.))
                     .justify_center()
                     .flex_shrink_0()
                     .cursor_pointer()
@@ -292,7 +434,7 @@ impl FocusDeck {
                         } else {
                             "Circle"
                         },
-                        30.,
+                        36.,
                         if task.status == "completed" {
                             0x22c55e
                         } else {
@@ -322,83 +464,100 @@ impl FocusDeck {
             .child(
                 column()
                     .flex_1()
-                    .gap(px(6.))
+                    .gap(px(10.))
                     .child(
                         row()
+                            .w_full()
                             .items_start()
                             .gap(px(10.))
                             .child(
                                 text(
                                     task.title.clone(),
-                                    19.,
+                                    title_size,
                                     if task.status == "completed" {
                                         DIM
                                     } else {
                                         TEXT
                                     },
                                 )
+                                .flex_1()
+                                .min_w_0()
+                                .whitespace_normal()
                                 .font_weight(FontWeight::SEMIBOLD)
-                                .line_height(px(27.))
-                                .line_clamp(2)
+                                .line_height(px(title_size * 1.35))
                                 .when(task.status == "completed", |el| el.line_through()),
                             )
                             .child(
                                 row()
-                                    .size(px(24.))
+                                    .size(px(28.))
+                                    .mt(px(4.))
                                     .justify_center()
                                     .rounded(px(6.))
                                     .bg(rgb(SURFACE))
                                     .flex_shrink_0()
-                                    .child(icon("Flag", 16., priority)),
+                                    .child(icon("Flag", 20., priority)),
                             ),
                     )
                     .child(
                         row()
+                            .w_full()
                             .flex_wrap()
-                            .gap(px(12.))
+                            .gap(px(14.))
                             .child(
-                                row().gap(px(7.)).child(dot(tone).size(px(10.))).child(
-                                    text(
-                                        project.map(|p| p.name.clone()).unwrap_or_default(),
-                                        15.,
-                                        MUTED,
-                                    )
-                                    .font_weight(FontWeight::BOLD),
-                                ),
+                                row()
+                                    .gap(px(7.))
+                                    .flex_shrink_0()
+                                    .child(dot(tone).size(px(12.)))
+                                    .child(
+                                        text(
+                                            project.map(|p| p.name.clone()).unwrap_or_default(),
+                                            meta_size,
+                                            MUTED,
+                                        )
+                                        .font_weight(FontWeight::SEMIBOLD),
+                                    ),
                             )
                             .when(task.due_at.is_some(), |el| {
                                 el.child(
                                     row()
-                                        .gap(px(5.))
-                                        .child(icon("CalendarClock", 20., due_tone))
+                                        .gap(px(6.))
+                                        .flex_shrink_0()
+                                        .child(icon("CalendarClock", 24., due_tone))
                                         .child(
-                                            display(self.due_label(task), 15., due_tone)
+                                            display(self.due_label(task), meta_size, due_tone)
                                                 .font_weight(FontWeight::BOLD),
                                         ),
                                 )
                             })
                             .child(
-                                row().gap(px(5.)).child(icon("Timer", 20., TEXT)).child(
-                                    display(
-                                        format!(
-                                            "{}/{}",
-                                            (task.actual_focus_seconds + 59) / 60,
-                                            task.estimate_pomodoros * 25
-                                        ),
-                                        15.,
-                                        TEXT,
-                                    )
-                                    .font_weight(FontWeight::BOLD),
-                                ),
+                                row()
+                                    .gap(px(6.))
+                                    .flex_shrink_0()
+                                    .child(icon("Timer", 24., TEXT))
+                                    .child(
+                                        display(
+                                            format!(
+                                                "{}/{}",
+                                                (task.actual_focus_seconds + 59) / 60,
+                                                task.estimate_pomodoros * 25
+                                            ),
+                                            meta_size,
+                                            TEXT,
+                                        )
+                                        .font_weight(FontWeight::BOLD),
+                                    ),
                             ),
                     ),
             )
             .child(
                 row()
+                    .when(compact, |el| el.flex_col())
+                    .flex_shrink_0()
                     .gap(px(8.))
                     .when(task.status != "completed", |el| {
                         el.child(
                             icon_button(SharedString::from(format!("start-{id}")), "Clock")
+                                .size(px(44.))
                                 .bg(rgba(0xffab0029))
                                 .on_click(cx.listener(move |this, _, _, cx| {
                                     this.start_task(focus_id.clone(), cx)
@@ -406,8 +565,9 @@ impl FocusDeck {
                         )
                     })
                     .child(
-                        icon_button(SharedString::from(format!("delete-{id}")), "Trash2").on_click(
-                            cx.listener(move |this, _, _, cx| {
+                        icon_button(SharedString::from(format!("delete-{id}")), "Trash2")
+                            .size(px(44.))
+                            .on_click(cx.listener(move |this, _, _, cx| {
                                 if let Some(task) = this
                                     .doc
                                     .data
@@ -420,8 +580,7 @@ impl FocusDeck {
                                 }
                                 this.save();
                                 cx.notify();
-                            }),
-                        ),
+                            })),
                     ),
             )
             .on_drop(cx.listener(move |this, drag: &TaskDrag, _, cx| {
@@ -433,7 +592,11 @@ impl FocusDeck {
     fn task_composer(&self, cx: &mut Context<Self>) -> Div {
         let expanded = self.composer || !self.draft.read(cx).content.is_empty();
         column()
-            .p(px(16.))
+            .p(px(if self.viewport_height < 650. {
+                10.
+            } else {
+                16.
+            }))
             .gap(px(12.))
             .border_t_1()
             .border_color(rgba(BORDER))
@@ -442,7 +605,11 @@ impl FocusDeck {
                 row()
                     .id("composer-title")
                     .gap(px(10.))
-                    .h(px(44.))
+                    .h(px(if self.viewport_height < 650. {
+                        48.
+                    } else {
+                        56.
+                    }))
                     .px(px(12.))
                     .rounded(px(8.))
                     .bg(rgb(SURFACE))
