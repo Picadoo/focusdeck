@@ -39,6 +39,8 @@
 
 `codex/rust-gpui` 分支提供独立的 **Rust + GPUI 原生桌面版**，无需 WebView。构建、运行、数据迁移与验收范围见 [native/README.md](native/README.md)。原有网页、服务端和 Android 代码保留。
 
+Windows x64 原生预览版下载：[native-v0.1.0](https://github.com/Picadoo/focusdeck/releases/tag/native-v0.1.0)。解压 ZIP 后运行 `focusdeck-native.exe`；第三屏全屏启动可双击包内 `Start-Third-Screen.cmd`。
+
 网页端是主体且功能完整，另有一个自托管同步服务端和一个安卓壳，技术栈为：
 
 - Vite 8 + React 19 + TypeScript 6

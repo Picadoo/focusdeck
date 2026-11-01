@@ -2,6 +2,8 @@
 
 `codex/rust-gpui` 分支中的 Rust + GPUI 桌面版本。独立于 `src/` 和 `src-tauri/`，运行时无需 Node.js、浏览器或 WebView。
 
+Windows x64 便携预览版：[下载 native-v0.1.0](https://github.com/Picadoo/focusdeck/releases/tag/native-v0.1.0)。完整解压 ZIP 后双击 `focusdeck-native.exe`，默认全屏；第三屏全屏启动可双击 `Start-Third-Screen.cmd`。包内包含所需的 `vcruntime140.dll`，请保留在程序同目录。
+
 ## 构建与运行
 
 Windows 需要 Rust stable（至少 1.88）和 Visual Studio C++ Build Tools / Windows SDK。
@@ -11,9 +13,11 @@ cargo build --release --locked --manifest-path native/Cargo.toml
 .\native\target\release\focusdeck-native.exe
 ```
 
-默认全屏启动，与原 Tauri 配置一致。按 `F11` 切换全屏；也可以窗口模式启动：
+默认全屏启动，与原 Tauri 配置一致。按 `F11` 切换全屏。
 
 第三屏全屏启动使用 `.\native\target\release\focusdeck-native.exe --display 3`。界面以全屏使用为主要设计场景，待办内容优先占据可用空间。
+
+窗口模式启动：
 
 ```powershell
 .\native\target\release\focusdeck-native.exe --windowed
