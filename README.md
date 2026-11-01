@@ -37,6 +37,8 @@
 
 ## 当前进度
 
+`codex/rust-gpui` 分支提供独立的 **Rust + GPUI 原生桌面版**，无需 WebView。构建、运行、数据迁移与验收范围见 [native/README.md](native/README.md)。原有网页、服务端和 Android 代码保留。
+
 网页端是主体且功能完整，另有一个自托管同步服务端和一个安卓壳，技术栈为：
 
 - Vite 8 + React 19 + TypeScript 6
