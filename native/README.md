@@ -13,6 +13,8 @@ cargo build --release --locked --manifest-path native/Cargo.toml
 
 默认全屏启动，与原 Tauri 配置一致。按 `F11` 切换全屏；也可以窗口模式启动：
 
+第三屏全屏启动使用 `.\native\target\release\focusdeck-native.exe --display 3`。界面以全屏使用为主要设计场景，待办内容优先占据可用空间。
+
 ```powershell
 .\native\target\release\focusdeck-native.exe --windowed
 .\native\target\release\focusdeck-native.exe --windowed --view timer
